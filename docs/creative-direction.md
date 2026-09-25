@@ -1,16 +1,13 @@
-# Creative Direction v2 — Personal Brand Atlética Humana
+# Creative Direction v3 — referência de personal trainers reais
 
-## Por que a v1 falhou
-A v1 reutilizou linguagem estrutural da TelaGo: hero tipográfico enorme, grids editoriais, blocos numerados e ritmo de agência/tech. Mesmo com outra paleta, a assinatura visual continuou parecida.
+## Pesquisa
+Referências estudadas: galerias e sites de personal trainers/strength coaches em 2026. Padrões recorrentes: fotografia real do treinador/cliente como elemento de confiança; promessa clara para uma pessoa real; serviços e objetivos fáceis de entender; bio humana; processo simples para começar; prova real; CTA de baixa fricção; forte experiência mobile.
 
-## Nova direção
-O site deve parecer uma marca pessoal de um profissional que ensina e acompanha pessoas, não uma empresa de tecnologia. A logo LG oficial passa a ser o principal ativo visual.
+## Decisão
+Parar de desenhar uma “landing page bonita” e desenhar uma página de treinador. O rosto, a prática e a relação humana devem ser o centro. Como ainda não há foto pessoal anexada ao projeto, a v3 deixa um espaço fotográfico explícito em vez de inventar uma imagem ou usar stock.
 
-## Linguagem
-Branco predominante, roxo da identidade como energia e preto como contraste. Composição aberta e atlética; círculos e movimento inspirados em trajetória corporal; menos “painel”, mais presença pessoal. Tipografia direta, sem estética de imprensa de tecnologia.
+## Linguagem visual
+Base clara e quente, roxo LG, tipografia sans + serif humana para contraste. Estrutura de editorial de treinador: foto + proposta, bio, objetivos/modalidades em lista, processo, papel de professor, conteúdo educativo e contato. Sem dashboards, números gigantes decorativos, cards SaaS ou estética de mídia indoor.
 
-## Estrutura
-Hero pessoal + identidade; apresentação humana; método como sequência vertical; manifesto escuro com logo; áreas de atuação; contato. Evitar a arquitetura visual da TelaGo.
-
-## Regra aprendida
-Antes do merge, comparar explicitamente o novo projeto com os projetos anteriores. Se estrutura, hero, ritmo, componentes ou sensação geral forem reconhecivelmente semelhantes sem justificativa do briefing, bloquear o merge.
+## Regra
+Uma marca pessoal de serviço deve priorizar pessoa, prova e relação. Logo não substitui fotografia humana. Até receber fotos reais, usar placeholder intencional e nunca stock fingindo ser o profissional.
