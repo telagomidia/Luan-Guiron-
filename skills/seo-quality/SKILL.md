@@ -1,0 +1,2 @@
+# SEO Quality
+Title, description, headings, HTML semântico, Open Graph, canonical no domínio final, imagens otimizadas, performance e conteúdo local verdadeiro. Nunca inventar endereço, avaliações ou resultados.
