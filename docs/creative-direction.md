@@ -1,19 +1,16 @@
-# Creative Direction v1 — Luan Guiron
+# Creative Direction v2 — Personal Brand Atlética Humana
 
-## Negócio
-Profissional de Educação Física com atuação em personal training, musculação, treinamento físico e educação. Experiência informada: 10 anos. Método LG: Movimento, Controle e Progressão.
+## Por que a v1 falhou
+A v1 reutilizou linguagem estrutural da TelaGo: hero tipográfico enorme, grids editoriais, blocos numerados e ritmo de agência/tech. Mesmo com outra paleta, a assinatura visual continuou parecida.
 
-## Público
-Adultos que querem treinar com orientação individual, compreender o processo e evoluir com consistência; pessoas que valorizam acompanhamento técnico acima de promessas rápidas.
+## Nova direção
+O site deve parecer uma marca pessoal de um profissional que ensina e acompanha pessoas, não uma empresa de tecnologia. A logo LG oficial passa a ser o principal ativo visual.
 
-## Personalidade
-Humano, técnico, disciplinado, próximo e seguro.
+## Linguagem
+Branco predominante, roxo da identidade como energia e preto como contraste. Composição aberta e atlética; círculos e movimento inspirados em trajetória corporal; menos “painel”, mais presença pessoal. Tipografia direta, sem estética de imprensa de tecnologia.
 
-## Sensação
-“Existe método e acompanhamento, mas existe uma pessoa ensinando aqui.”
+## Estrutura
+Hero pessoal + identidade; apresentação humana; método como sequência vertical; manifesto escuro com logo; áreas de atuação; contato. Evitar a arquitetura visual da TelaGo.
 
-## Rota escolhida — Caderno de Treino Contemporâneo
-A estética parte do universo físico do treino: ficha, marcações, linhas, números de sessão e anotações. Fundo claro/quente, roxo como assinatura da marca e grafite para texto. Evitar estética de aplicativo fitness, SaaS, dashboard neon, preto/vermelho agressivo e clichê bodybuilding.
-
-## Conversão
-CTA primário: conversar sobre acompanhamento. Como telefone/WhatsApp real ainda não está confirmado no repositório, CTA leva ao contato local sem inventar número.
+## Regra aprendida
+Antes do merge, comparar explicitamente o novo projeto com os projetos anteriores. Se estrutura, hero, ritmo, componentes ou sensação geral forem reconhecivelmente semelhantes sem justificativa do briefing, bloquear o merge.
