@@ -1,0 +1,2 @@
+# Creative Direction
+Antes de codificar: definir segmento, público, oferta, conversão, personalidade, sensações, tipografia, paleta, composição, fotografia, motion, referências e anti-referências. Nunca copiar estética de projeto anterior.
