@@ -1,0 +1,2 @@
+# Security Quality
+Segurança proporcional. Sem segredos no front/repo. Minimizar dependências. Não criar backend sem necessidade. Se houver backend futuro: validar no servidor, rate limit, auth adequada, logs sem dados desnecessários e variáveis de ambiente.
