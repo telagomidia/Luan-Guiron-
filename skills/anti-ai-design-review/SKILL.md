@@ -1,0 +1,2 @@
+# Anti-AI Design Review
+Auditar hero genérico, cards repetidos, pills, glow, gradientes gratuitos, frases vagas, ícones aleatórios, estética SaaS sem justificativa, fotografia artificial e cadência templada. Para cada achado: problema, impacto e correção.
