@@ -1,0 +1,2 @@
+# Segment Fit Review
+Verificar se visual, energia, formalidade, imagens, tipografia e motion combinam com profissional de Educação Física e seu público. Bloquear clichês de tech/SaaS e bodybuilding agressivo sem base no briefing.
