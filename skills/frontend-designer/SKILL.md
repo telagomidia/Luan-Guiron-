@@ -1,0 +1,2 @@
+# Front-end Designer
+Implementar a Creative Direction, não uma estética padrão. Componentes existem por função. Não assumir cards, gradientes, fundo escuro, dashboard, glassmorphism ou tipografia gigante. Mobile e desktop devem ser intencionais. Teste da troca de logo: se outro segmento puder ocupar o layout sem estranheza, refine.
