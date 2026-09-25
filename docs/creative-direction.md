@@ -1,13 +1,24 @@
-# Creative Direction v3 — referência de personal trainers reais
+# Creative Direction — V5 / Editorial Movimento
 
-## Pesquisa
-Referências estudadas: galerias e sites de personal trainers/strength coaches em 2026. Padrões recorrentes: fotografia real do treinador/cliente como elemento de confiança; promessa clara para uma pessoa real; serviços e objetivos fáceis de entender; bio humana; processo simples para começar; prova real; CTA de baixa fricção; forte experiência mobile.
-
-## Decisão
-Parar de desenhar uma “landing page bonita” e desenhar uma página de treinador. O rosto, a prática e a relação humana devem ser o centro. Como ainda não há foto pessoal anexada ao projeto, a v3 deixa um espaço fotográfico explícito em vez de inventar uma imagem ou usar stock.
+## Conceito
+Um site-manifesto de Educação Física com linguagem editorial e cinética. A página não se comporta como landing page SaaS: não usa cards arredondados, hero centralizado, mockups, gradientes de produto ou blocos herdados da TelaGo.
 
 ## Linguagem visual
-Base clara e quente, roxo LG, tipografia sans + serif humana para contraste. Estrutura de editorial de treinador: foto + proposta, bio, objetivos/modalidades em lista, processo, papel de professor, conteúdo educativo e contato. Sem dashboards, números gigantes decorativos, cards SaaS ou estética de mídia indoor.
+- Fundo papel quente + tinta preta + roxo LG como intervenção.
+- Tipografia oversized, condensada visualmente por peso e tracking.
+- Bordas secas, assimetria, numeração editorial e alto contraste.
+- Marca LG como peça gráfica, não como decoração.
+- Movimento representado por ritmo, escala e direção; sem fotos genéricas de academia.
 
-## Regra
-Uma marca pessoal de serviço deve priorizar pessoa, prova e relação. Logo não substitui fotografia humana. Até receber fotos reais, usar placeholder intencional e nunca stock fingindo ser o profissional.
+## Narrativa
+1. Manifesto: “O corpo aprende movendo.”
+2. Três contextos: escola, personal/musculação e Workout CT/treinamento.
+3. Método LG: Movimento → Controle → Progressão, detalhado em cinco passos.
+4. Visão profissional e 10 anos de experiência.
+5. Contato sem inventar telefone, e-mail, depoimentos, resultados ou preços.
+
+## Cross-project similarity review
+A estrutura evita explicitamente o padrão TelaGo e versões anteriores: hero bipartido editorial, marquee tipográfico, atuação em três painéis secos, método em sequência linear e manifesto em split roxo. Sem componentes de produto, pricing, dashboard, formulário comercial ou estética de mídia indoor.
+
+## Qualidade
+Mobile-first; HTML semântico; foco navegável; contraste alto; reduced-motion; SEO básico; conteúdo factual; nenhum backend sem requisito funcional.
