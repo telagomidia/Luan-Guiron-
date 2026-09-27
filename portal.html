@@ -11,7 +11,7 @@ function fail(t){document.getElementById('loadTitle').textContent='Não foi poss
 const {data:p,error}=await sb.from('profiles').select('id,role,full_name,email,active').eq('id',session.user.id).maybeSingle();
 if(error){console.error(error);fail('Houve um erro ao consultar suas permissões. Saia e entre novamente.');return}
 if(!p){fail('Seu acesso existe, mas o perfil ainda não está vinculado.');return}
-if(!p.active){fail('Seu perfil está inativo.');return}
+if(!p.active){fail('Seu perfil está inativo.');return}\nif(p.role==='trainer'){location.href='./admin.html';return}
 document.getElementById('role').textContent=p.role==='trainer'?'Professor / Administração':'Aluno';
 document.getElementById('hello').innerHTML='OLÁ,<br>'+((p.full_name||'').split(' ')[0]||'VOCÊ').toUpperCase()+'.';
 document.getElementById('status').textContent=p.role==='trainer'?'Gerencie alunos, avaliações, prescrições e acompanhe a evolução de cada aluno.':'Acompanhe seus treinos, avaliações e evolução.';
