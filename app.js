@@ -1,0 +1,4 @@
+const sb=supabase.createClient(LG_CONFIG.supabaseUrl,LG_CONFIG.supabaseKey);
+const $=s=>document.querySelector(s);
+async function boot(){const {data:{session}}=await sb.auth.getSession(); if(session) location.href='./portal.html'}
+document.addEventListener('DOMContentLoaded',()=>{boot();const modal=$('#loginModal');$('#loginBtn')?.addEventListener('click',()=>modal.showModal());$('#closeLogin')?.addEventListener('click',()=>modal.close());$('#loginForm')?.addEventListener('submit',async e=>{e.preventDefault();const email=$('#loginEmail').value,password=$('#loginPassword').value,msg=$('#loginMsg');msg.textContent='Entrando...';const {error}=await sb.auth.signInWithPassword({email,password});if(error){msg.textContent='Não foi possível entrar. Confira e-mail e senha.';return}location.href='./portal.html'});});
