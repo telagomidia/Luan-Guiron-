@@ -1,0 +1,1 @@
+window.LG_CONFIG={supabaseUrl:"https://ziunjhebdkqdmvsrjxhm.supabase.co",supabaseKey:"sb_publishable_XYbldUl0dXkaf9C9XLMDZA_2cG26rHC"};
