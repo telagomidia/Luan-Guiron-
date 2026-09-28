@@ -19,5 +19,5 @@ const student=[['Meu treino','Prescrição, séries, repetições, RIR e histór
 const trainer=[['Alunos','Cadastros e acompanhamento individual.'],['Avaliações','Nova avaliação e histórico dos alunos.'],['Treinos','Prescrição e acompanhamento das sessões.'],['Anamneses','Respostas e histórico dos alunos.'],['Evolução','Fotos, medidas e resultados.'],['Orientações','Registre recomendações para cada aluno.']];
 document.getElementById('cards').innerHTML=(p.role==='trainer'?trainer:student).map(x=>'<article class="card"><h2>'+x[0]+'</h2><p>'+x[1]+'</p></article>').join('');
 loading.style.display='none';dashboard.style.display='block';
-})();document.getElementById('logout').onclick=async()=>{await sb.auth.signOut();location.href='./'};
+})().catch(e=>{console.error(e);fail(e?.message||'Erro inesperado ao abrir o painel.')});async function logoutUser(){const b=document.getElementById('logout');if(b){b.disabled=true;b.textContent='Saindo...'}try{await sb.auth.signOut()}catch(e){console.error(e)}finally{location.replace('./index.html')}}document.getElementById('logout').onclick=logoutUser;
 </script></body></html>
