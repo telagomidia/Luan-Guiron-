@@ -1,2 +1,2 @@
 window.LG_CONFIG={supabaseUrl:"https://ziunjhebdkqdmvsrjxhm.supabase.co",supabaseKey:"sb_publishable_XYbldUl0dXkaf9C9XLMDZA_2cG26rHC"};
-if(/\/admin\.html$/.test(location.pathname)){window.addEventListener('load',()=>{const s=document.createElement('script');s.src='./student-management.js?v=3';document.body.appendChild(s)})}
+if(/\/admin\.html$/.test(location.pathname)){window.addEventListener('load',()=>{const s=document.createElement('script');s.src='./student-management.js?v=4';s.onload=()=>{const a=document.createElement('script');a.src='./student-alerts.js?v=1';document.body.appendChild(a)};document.body.appendChild(s)})}
