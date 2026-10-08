@@ -14,3 +14,7 @@ jobs:
         with:
           node-version: "22"
       - run: node --test tests/*.test.cjs
+      - name: Student portal DOM integration
+        run: |
+          npm install --prefix "$RUNNER_TEMP/portal-ui" happy-dom@20.14.5 --no-audit --no-fund
+          HAPPY_DOM_ENTRY="$RUNNER_TEMP/portal-ui/node_modules/happy-dom/lib/index.js" node tests/portal-ui.check.mjs
