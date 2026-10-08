@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="referrer" content="no-referrer"><meta name="robots" content="noindex,nofollow">
+  <title>Definir senha · Luan Guiron</title><link rel="icon" href="./public/logo-lg-official.svg">
+  <style>
+    :root{--purple:#7135e8;--ink:#29232f;--muted:#655d70;--line:#e2d9ef}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:#faf7ff;color:var(--ink);font:16px Arial,sans-serif}main{width:min(460px,92%);margin:8vh auto;padding:28px;border:1px solid var(--line);border-radius:18px;background:white}.brand{display:flex;align-items:center;gap:12px;font-weight:bold}.brand img{width:48px;height:48px}h1{font-size:32px;margin:30px 0 12px}p{line-height:1.6;color:var(--muted)}label{display:block;font-weight:bold;margin:18px 0 8px}input,button{font:inherit}input{width:100%;padding:14px;border:1px solid var(--line);border-radius:8px}button{border:0;padding:14px 18px;border-radius:8px;cursor:pointer}.primary{width:100%;background:var(--purple);color:white;font-weight:bold;margin-top:20px}button:disabled{opacity:.6;cursor:wait}.toggle{background:none;color:var(--purple);padding-left:0}a{color:var(--purple)}:focus-visible{outline:3px solid #a88be6;outline-offset:3px}.error{color:#a32828}[hidden]{display:none!important}
+  </style>
+</head>
+<body><main>
+  <div class="brand"><img src="./public/logo-lg.webp" alt="Logo LG">LUAN GUIRON</div>
+  <h1>Seu acesso LG.</h1>
+  <p id="intro">Escolha sua senha para acessar os treinos, avaliações e acompanhamento.</p>
+  <button type="button" class="primary" id="verifyLink" disabled>Continuar e definir senha</button>
+  <form id="passwordForm" hidden>
+    <label for="newPassword">Nova senha</label><input id="newPassword" type="password" autocomplete="new-password" minlength="8" maxlength="128" required>
+    <label for="confirmPassword">Confirmar senha</label><input id="confirmPassword" type="password" autocomplete="new-password" minlength="8" maxlength="128" required>
+    <button type="button" id="togglePassword" class="toggle" aria-pressed="false">Mostrar senhas</button>
+    <button type="submit" id="savePassword" class="primary">Salvar minha senha</button>
+  </form>
+  <p id="passwordStatus" role="status" aria-live="polite"></p>
+  <a href="./index.html" id="loginLink">Voltar ao login</a>
+</main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script><script src="./config.js"></script><script src="./auth-client.js?v=1"></script><script src="./password-page.js?v=1"></script></body>
+</html>
