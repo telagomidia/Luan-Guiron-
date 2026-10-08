@@ -1,13 +1,89 @@
-(()=>{
-const baseTreinos=window.treinos;
-window.treinos=async function(){await baseTreinos();let toolbar=view.querySelector('.toolbar'),primary=toolbar?.querySelector('.primary');if(toolbar&&primary){let wrap=document.createElement('div');wrap.className='report-actions';let model=document.createElement('button');model.className='ghost';model.textContent='Copiar modelo LG';model.onclick=copyLGTrainingTemplate;let imp=document.createElement('button');imp.className='ghost';imp.textContent='Importar treino';imp.onclick=()=>trainingImportForm();wrap.append(model,imp,primary);toolbar.appendChild(wrap)}};
-
-async function loadPlanForAction(id){let {data,error}=await sb.from('training_plans').select('id,name,active,student_id').eq('id',id).single();if(error)throw error;return data}
-
-window.toggleTrainingPlanActive=async function(id){try{let plan=await loadPlanForAction(id),next=!plan.active,msg=next?'Reativar este plano de treino?':'Desativar este plano?\n\nEle continuará salvo no histórico e poderá ser reativado depois.';if(!confirm(msg))return;let {error}=await sb.from('training_plans').update({active:next}).eq('id',id);if(error)throw error;toast(next?'Plano reativado':'Plano desativado e mantido no histórico');await openTrainingPlan(id)}catch(e){toast('Não foi possível alterar o plano: '+e.message)}};
-
-window.deleteTrainingPlan=async function(id){try{let plan=await loadPlanForAction(id);let first=confirm('Excluir permanentemente o plano “'+plan.name+'”?\n\nUse esta opção apenas para testes ou cadastros incorretos. Se houver sessões registradas, a exclusão será bloqueada para preservar o histórico.');if(!first)return;let typed=prompt('Para confirmar a exclusão permanente, digite EXCLUIR:');if(typed!=='EXCLUIR')return toast('Exclusão cancelada');let {error}=await sb.rpc('delete_training_plan',{p_plan_id:id});if(error)throw error;toast('Plano excluído com sucesso');await treinos()}catch(e){toast('Exclusão cancelada: '+e.message)}};
-
-const baseOpen=window.openTrainingPlan;
-window.openTrainingPlan=async function(id){await baseOpen(id);let toolbar=view.querySelector('.toolbar');if(toolbar){let {data:plan}=await sb.from('training_plans').select('active').eq('id',id).single();let a=document.createElement('div');a.className='report-actions';a.innerHTML='<button class="ghost" id="trainingView">Visualizar ficha</button><button class="primary" id="trainingPdf">Gerar PDF</button><button class="ghost" id="trainingToggle">'+(plan?.active===false?'Reativar plano':'Desativar plano')+'</button><button class="ghost" id="trainingDelete" style="border-color:#b42318;color:#b42318">Excluir plano</button>';toolbar.appendChild(a);a.querySelector('#trainingView').onclick=()=>trainingReport(id,false);a.querySelector('#trainingPdf').onclick=()=>trainingReport(id,true);a.querySelector('#trainingToggle').onclick=()=>toggleTrainingPlanActive(id);a.querySelector('#trainingDelete').onclick=()=>deleteTrainingPlan(id)}};
+(() => {
+  'use strict';
+  const pending = new Set();
+  function busy(value) {
+    view.querySelectorAll('[data-plan-action]').forEach(button => { button.disabled = value; });
+  }
+  async function action(id, operation) {
+    if (pending.has(id)) return;
+    pending.add(id); busy(true);
+    try { await operation(); }
+    catch (error) { toast(LG_PLANS.message(error)); }
+    finally { pending.delete(id); busy(pending.size > 0); }
+  }
+  window.treinos = async function() {
+    await loadStudents();
+    const { data: plans, error } = await sb.from('training_plans').select('*').order('created_at', { ascending: false });
+    if (error) { toast('Não foi possível carregar os planos. Tente novamente.'); return; }
+    view.innerHTML = '<div class="ey">Prescrição</div><h1>TREINOS.</h1><div class="toolbar"><p class="muted">Planos ativos e histórico dos seus alunos.</p><div class="report-actions"><button class="ghost" id="copyPlanTemplate">Copiar modelo LG</button><button class="ghost" id="importPlan">Importar treino</button><button class="primary" id="newPlan">+ Novo plano</button></div></div><div class="form"><div class="field"><label for="planSearch">Buscar plano ou aluno</label><input id="planSearch" type="search" placeholder="Nome do plano ou aluno"></div><div class="field"><label for="planStatusFilter">Estado do plano</label><select id="planStatusFilter"><option value="all">Todos</option><option value="active">Ativos</option><option value="inactive">Inativos / histórico</option></select></div></div><p class="muted" role="status" id="planCount"></p><div class="list" id="planList"></div>';
+    view.querySelector('#copyPlanTemplate').onclick = copyLGTrainingTemplate;
+    view.querySelector('#importPlan').onclick = () => trainingImportForm();
+    view.querySelector('#newPlan').onclick = () => planForm();
+    const search = view.querySelector('#planSearch'), filter = view.querySelector('#planStatusFilter');
+    function render() {
+      const term = search.value.trim().toLocaleLowerCase('pt-BR');
+      const filtered = (plans || []).filter(plan => {
+        const student = students.find(s => s.id === plan.student_id);
+        return (filter.value === 'all' || (filter.value === 'active' ? plan.active === true : plan.active !== true))
+          && (plan.name+' '+(student?.full_name || '')).toLocaleLowerCase('pt-BR').includes(term);
+      });
+      view.querySelector('#planCount').textContent = filtered.length+' plano(s) encontrado(s).';
+      const list = view.querySelector('#planList');
+      list.innerHTML = filtered.map(plan => '<div class="row"><div><b>'+esc(plan.name)+'</b><small>'+esc(students.find(s => s.id === plan.student_id)?.full_name || 'Aluno')+' · '+(plan.active ? 'Ativo' : 'Inativo — histórico preservado')+'</small></div><button class="primary" data-open-plan="'+esc(plan.id)+'">Abrir treinos</button></div>').join('') || '<div class="empty">Nenhum plano encontrado.</div>';
+      list.querySelectorAll('[data-open-plan]').forEach(button => { button.onclick = () => openTrainingPlan(button.dataset.openPlan); });
+    }
+    search.oninput = filter.onchange = render; render();
+  };
+  window.toggleTrainingPlanActive = id => action(id, async () => {
+    const plan = await LG_PLANS.load(id), next = !plan.active;
+    const question = next ? 'Reativar o plano “'+plan.name+'”?' : 'Desativar o plano “'+plan.name+'”?\n\nO plano e as sessões continuarão no histórico.';
+    if (!confirm(question)) return;
+    await LG_PLANS.setActive(plan, next);
+    toast(next ? 'Plano reativado' : 'Plano desativado; histórico preservado');
+    await openTrainingPlan(id);
+  });
+  window.deleteTrainingPlan = id => action(id, async () => {
+    const plan = await LG_PLANS.load(id);
+    if (await LG_PLANS.history(id) > 0) { toast(LG_PLANS.message({ code: 'plan_has_history' })); return; }
+    if (!confirm('Excluir permanentemente o plano “'+plan.name+'”?\n\nOs treinos e exercícios serão removidos. Esta ação não pode ser desfeita. Para manter o plano, use Desativar.')) return;
+    if (prompt('Para confirmar a exclusão permanente, digite EXCLUIR:') !== 'EXCLUIR') { toast('Exclusão cancelada'); return; }
+    await LG_PLANS.remove(id);
+    toast('Plano excluído com sucesso'); await treinos();
+  });
+  const baseOpen = window.openTrainingPlan;
+  window.openTrainingPlan = async function(id) {
+    await baseOpen(id);
+    const marker = view.querySelector('#workoutEditor');
+    if (marker?.dataset.planId !== id) return;
+    try {
+      const plan = await LG_PLANS.load(id), sessions = await LG_PLANS.history(id);
+      if (view.querySelector('#workoutEditor') !== marker) return;
+      const toolbar = view.querySelector('.toolbar');
+      const status = document.createElement('p');
+      status.className = 'muted'; status.setAttribute('role','status');
+      status.textContent = (plan.active ? 'Plano ativo' : 'Plano inativo — histórico preservado')+' · '+sessions+' sessão(ões) registrada(s).';
+      toolbar.after(status);
+      const actions = document.createElement('div'); actions.className = 'report-actions';
+      function button(label, className, onClick) {
+        const element = document.createElement('button'); element.type = 'button';
+        element.className = className; element.textContent = label;
+        element.dataset.planAction = ''; element.onclick = onClick;
+        actions.appendChild(element); return element;
+      }
+      button('Visualizar ficha','ghost',() => trainingReport(id,false));
+      button('Gerar PDF','primary',() => trainingReport(id,true));
+      button(plan.active ? 'Desativar plano' : 'Reativar plano','ghost',() => toggleTrainingPlanActive(id));
+      const remove = button('Excluir plano','ghost',() => deleteTrainingPlan(id));
+      remove.style.color = '#b42318'; remove.style.borderColor = '#b42318';
+      if (sessions > 0) {
+        remove.disabled = true; remove.removeAttribute('data-plan-action');
+        remove.title = 'Exclusão bloqueada: há sessões registradas. Use Desativar plano.';
+        const note = document.createElement('p'); note.className = 'muted';
+        note.textContent = 'A exclusão está bloqueada porque há sessões. Desative o plano para preservar o histórico.';
+        toolbar.after(note);
+      }
+      toolbar.appendChild(actions);
+      if (pending.size) busy(true);
+    } catch (error) { toast('Não foi possível conferir o estado do plano. Atualize a tela antes de gerenciá-lo.'); }
+  };
 })();
