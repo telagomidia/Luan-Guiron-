@@ -1,7 +1,53 @@
-(()=>{
-const cleanJson=t=>{let s=String(t||'').trim(),m=s.match(/```(?:json)?\s*([\s\S]*?)```/i);if(m)s=m[1].trim();return JSON.parse(s)};
-const numberOrNull=(v,min,max)=>{if(v===null||v===undefined||v==='')return null;let n=Number(v);if(!Number.isFinite(n)||n<min||n>max)throw new Error('Valor numérico inválido: '+v);return n};
-function normalizeTraining(raw){if(!raw||typeof raw!=='object')throw new Error('JSON inválido');if(!Array.isArray(raw.workouts)||raw.workouts.length<1||raw.workouts.length>5)throw new Error('Inclua de 1 a 5 treinos');return{plan_name:String(raw.plan_name||raw.name||'Plano importado').trim(),goal:String(raw.goal||'').trim(),starts_on:raw.starts_on||'',ends_on:raw.ends_on||'',notes:String(raw.notes||'').trim(),workouts:raw.workouts.map((w,wi)=>{let ex=Array.isArray(w.exercises)?w.exercises:[];if(!ex.length)throw new Error('Treino '+(wi+1)+' sem exercícios');return{name:String(w.name||('Treino '+String.fromCharCode(65+wi))).trim(),notes:String(w.notes||'').trim(),exercises:ex.map((x,ei)=>{let name=String(x.exercise_name||x.name||'').trim();if(!name)throw new Error('Exercício '+(ei+1)+' sem nome');let a={exercise_name:name,sets:numberOrNull(x.sets??x.target_sets,1,20),rep_min:numberOrNull(x.rep_min,1,200),rep_max:numberOrNull(x.rep_max,1,200),rir:numberOrNull(x.rir??x.target_rir,0,10),rest_seconds:numberOrNull(x.rest_seconds,0,1800),execution:String(x.execution??x.execution_notes??'').trim(),notes:String(x.notes||'').trim()};if(a.rep_min&&a.rep_max&&a.rep_max<a.rep_min)throw new Error(name+': faixa de repetições inválida');return a})}})}}
-window.trainingImportForm=async function(prefillStudent=''){await loadStudents();if(!students.length)return toast('Cadastre um aluno primeiro');document.querySelector('#mt').textContent='Importar treino do ChatGPT';form.innerHTML='<div class="field"><label>Aluno</label><select name="student_id">'+studentOptions()+'</select></div><div class="field" style="margin-top:14px"><label>Cole o FORMATO LG JSON</label><textarea name="payload" style="min-height:260px" placeholder="Cole aqui o treino gerado pelo ChatGPT"></textarea></div><p class="muted">Nada será salvo antes da conferência.</p><div id="importPreview"></div><div class="actions"><button type="button" class="ghost" onclick="modal.close()">Cancelar</button><button type="button" class="ghost" id="validateImport">Conferir treino</button><button class="primary" id="confirmImport" disabled>Confirmar e criar plano</button></div>';if(prefillStudent)form.elements.student_id.value=prefillStudent;let parsed=null;form.querySelector('#validateImport').onclick=()=>{try{parsed=normalizeTraining(cleanJson(form.elements.payload.value));let total=parsed.workouts.reduce((n,w)=>n+w.exercises.length,0);form.querySelector('#importPreview').innerHTML='<div class="empty"><b>'+esc(parsed.plan_name)+'</b><br>'+parsed.workouts.length+' treino(s) · '+total+' exercício(s)<br><br>'+parsed.workouts.map(w=>'<b>'+esc(w.name)+'</b>: '+w.exercises.map(x=>esc(x.exercise_name)).join(' · ')).join('<br><br>')+'</div>';form.querySelector('#confirmImport').disabled=false;toast('Treino validado. Confira antes de salvar.')}catch(e){parsed=null;form.querySelector('#confirmImport').disabled=true;form.querySelector('#importPreview').innerHTML='<div class="empty bad">'+esc(e.message)+'</div>'}};form.elements.payload.oninput=()=>{parsed=null;form.querySelector('#confirmImport').disabled=true;form.querySelector('#importPreview').innerHTML=''};form.onsubmit=async e=>{e.preventDefault();if(!parsed)return toast('Confira o treino primeiro');let btn=form.querySelector('#confirmImport');btn.disabled=true;btn.textContent='Importando...';let {data,error}=await sb.rpc('import_training_plan',{p_payload:{...parsed,student_id:form.elements.student_id.value}});if(error){btn.disabled=false;btn.textContent='Confirmar e criar plano';return toast('Importação cancelada: '+error.message)}modal.close();toast('Plano importado com sucesso');openTrainingPlan(data)};modal.showModal()};
-window.copyLGTrainingTemplate=async function(){let x={plan_name:'Nome do plano',goal:'Objetivo',starts_on:'YYYY-MM-DD',ends_on:'YYYY-MM-DD',notes:'Observações gerais',workouts:[{name:'Treino A',notes:'',exercises:[{exercise_name:'Nome do exercício',sets:3,rep_min:8,rep_max:12,rir:2,rest_seconds:90,execution:'Orientação de execução',notes:'Observação opcional'}]}]};await navigator.clipboard.writeText(JSON.stringify(x,null,2));toast('Modelo LG JSON copiado')};
+(() => {
+  'use strict';
+  window.trainingImportForm = async function(prefillStudent = '') {
+    try { await loadStudents(); }
+    catch { return toast('Não foi possível carregar os alunos. Atualize a tela.'); }
+    if (!students.length) return toast('Cadastre um aluno primeiro');
+    document.querySelector('#mt').textContent = 'Importar treino do ChatGPT';
+    form.innerHTML = '<div class="field"><label for="importStudent">Aluno</label><select id="importStudent" name="student_id" required>'+studentOptions()+'</select></div><div class="field" style="margin-top:14px"><label for="trainingJsonFile">Abrir arquivo JSON (opcional)</label><input id="trainingJsonFile" type="file" accept=".json,application/json"></div><div class="field" style="margin-top:14px"><label for="trainingPayload">Cole o FORMATO LG JSON</label><textarea id="trainingPayload" name="payload" style="min-height:260px" required placeholder="Cole todo o conteúdo do treino"></textarea></div><p class="muted">1. Escolha o aluno. 2. Confira o treino. 3. Confirme para gravar.</p><div id="importPreview"></div><p data-training-status role="status" aria-live="polite" class="muted">Clique em “Conferir treino” para liberar a gravação.</p><div class="actions"><button type="button" class="ghost" onclick="modal.close()">Cancelar</button><button type="button" class="ghost" id="validateImport">Conferir treino</button><button type="submit" class="primary" id="confirmImport" disabled>Confirmar e criar plano</button></div>';
+    if (prefillStudent) form.elements.student_id.value = prefillStudent;
+    const payload = form.elements.payload, student = form.elements.student_id;
+    const confirm = form.querySelector('#confirmImport'), preview = form.querySelector('#importPreview');
+    let parsed = null, checkedText = '', checkedStudent = '', fileVersion = 0;
+    function invalidate() {
+      parsed = null; confirm.disabled = true; preview.innerHTML = '';
+      LG_TRAINING.feedback(form, 'O conteúdo ou aluno mudou. Clique em “Conferir treino” antes de salvar.');
+    }
+    payload.oninput = () => { fileVersion++; invalidate(); };
+    student.onchange = invalidate;
+    form.querySelector('#trainingJsonFile').onchange = async event => {
+      const file = event.target.files?.[0], version = ++fileVersion;
+      invalidate();
+      if (!file) return;
+      if (file.size > 1048576) return LG_TRAINING.feedback(form, 'O arquivo JSON deve ter até 1 MB.', true);
+      try {
+        const content = await file.text();
+        if (version !== fileVersion || !modal.open) return;
+        payload.value = content;
+        LG_TRAINING.feedback(form, 'Arquivo aberto. Clique em “Conferir treino”.');
+      } catch { LG_TRAINING.feedback(form, 'Não foi possível ler o arquivo. Cole o conteúdo no campo JSON.', true); }
+    };
+    form.querySelector('#validateImport').onclick = () => {
+      try {
+        if (!student.value) throw Object.assign(new Error('Selecione o aluno.'), { code: 'validation' });
+        parsed = LG_TRAINING.parse(payload.value);
+        checkedText = payload.value; checkedStudent = student.value;
+        const total = parsed.workouts.reduce((sum, w) => sum+w.exercises.length, 0);
+        preview.innerHTML = '<div class="empty" style="text-align:left"><b>'+esc(parsed.plan_name)+'</b><br>Aluno: '+esc(students.find(s => s.id === student.value)?.full_name || 'Aluno')+'<br>'+parsed.workouts.length+' treino(s) · '+total+' exercício(s)<br><br>'+parsed.workouts.map(w => '<b>'+esc(w.name)+'</b><br>'+w.exercises.map(x => esc(x.exercise_name)+' — '+(x.sets ?? '—')+' séries · '+(x.rep_min ?? '—')+'–'+(x.rep_max ?? '—')+' reps · RIR '+(x.rir ?? '—')+' · '+(x.rest_seconds ?? '—')+' s'+(x.execution ? '<br>Execução: '+esc(x.execution) : '')+(x.notes ? '<br>Observação: '+esc(x.notes) : '')).join('<br>')).join('<br><br>')+'</div>';
+        confirm.disabled = false;
+        LG_TRAINING.feedback(form, 'Treino conferido. Revise o aluno e os exercícios e clique em “Confirmar e criar plano”.');
+      } catch (error) { parsed = null; confirm.disabled = true; preview.innerHTML = ''; LG_TRAINING.feedback(form, LG_TRAINING.message(error), true); }
+    };
+    LG_TRAINING.bindForm(form, confirm, async values => {
+      if (!parsed || values.payload !== checkedText || values.student_id !== checkedStudent) throw Object.assign(new Error('Confira o treino e o aluno antes de salvar.'), { code: 'validation' });
+      return LG_TRAINING.importPlan(parsed, values.student_id);
+    }, async id => { toast('Plano e exercícios importados com sucesso'); await openTrainingPlan(id); }, 'Importando...');
+    modal.showModal();
+  };
+  window.copyLGTrainingTemplate = async function() {
+    const template = { plan_name: 'Nome do plano', goal: 'Objetivo', starts_on: '', ends_on: '', notes: 'Observações gerais', workouts: [{ name: 'Treino A', notes: '', exercises: [{ exercise_name: 'Nome do exercício', sets: 3, rep_min: 8, rep_max: 12, rir: 2, rest_seconds: 90, execution: 'Orientação de execução', notes: '' }] }] };
+    try { await navigator.clipboard.writeText(JSON.stringify(template, null, 2)); toast('Modelo LG JSON copiado'); }
+    catch { toast('Não foi possível copiar. Use o arquivo JSON ou tente novamente.'); }
+  };
 })();

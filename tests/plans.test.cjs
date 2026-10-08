@@ -7,8 +7,8 @@ function setup(options={}) {
   for(const method of ['single','maybeSingle'])chain[method]=async()=>{calls.push({table,method});return results.shift()||{};};
   chain.then=(resolve,reject)=>Promise.resolve(results.shift()||{}).then(resolve,reject);return chain;
  }
- const context={window:{},sb:{from:builder,rpc:async(name,args)=>{calls.push({rpc:name,args});return results.shift()||{};}},Date};
- vm.createContext(context);vm.runInContext(source,context);
+ const context={window:{},sb:{from:builder,rpc:(name,args)=>{calls.push({rpc:name,args});const p=Promise.resolve(results.shift()||{});p.abortSignal=()=>p;return p;}},Date,AbortController,setTimeout,clearTimeout};
+ vm.createContext(context);vm.runInContext(fs.readFileSync(__dirname+'/../training-save.js','utf8'),context);context.LG_TRAINING=context.window.LG_TRAINING;vm.runInContext(source,context);
  return {api:context.window.LG_PLANS,calls,context,toasts};
 }
 test('activate confirms changed row and matches prior state',async()=>{const s=setup({results:[{data:{id:'p',active:true}}]});await s.api.setActive({id:'p',active:false},true);assert.ok(s.calls.some(x=>x.method==='eq'&&x.args[0]==='active'&&x.args[1]===false));});
