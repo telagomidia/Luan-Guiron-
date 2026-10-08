@@ -49,10 +49,9 @@
   }
   async function create(values) {
     const payload = createPayload(values);
-    const result = await sb.rpc('import_training_plan', { p_payload: payload });
-    if (result.error) throw result.error;
-    if (typeof result.data !== 'string' || !result.data) throw error('create_unconfirmed');
-    return result.data;
+    const data = await LG_TRAINING.request(sb.rpc('import_training_plan', { p_payload: payload }));
+    if (typeof data !== 'string' || !data) throw error('save_unconfirmed');
+    return data;
   }
   function message(e) {
     const messages = {
