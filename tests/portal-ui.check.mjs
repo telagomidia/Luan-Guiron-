@@ -26,6 +26,11 @@ const click=async s=>{one(s).click();await settle();};
 const route=async page=>click('[data-page="'+page+'"]');
 const fill=(s,value)=>{one(s).value=value;one(s).dispatchEvent(new window.Event('input',{bubbles:true}));};
 await settle();assert.match(one('#content').textContent,/Olá, Aluno/);
+assert.ok(one('.training-focus').compareDocumentPosition(one('.stats')) & 4,'Training precedes metrics');
+await click('#portalMore');assert.equal(one('#portalMore').getAttribute('aria-expanded'),'true');
+await route('guidance');assert.equal(one('#portalMore').getAttribute('aria-expanded'),'false');assert.ok(one('#portalMore').classList.contains('has-active'));
+await route('home');assert.ok(!one('#portalMore').classList.contains('has-active'));
+
 await route('training');await click('[data-plan]');assert.match(one('#content').textContent,/Agachamento/);assert.match(one('#content').textContent,/RIR 0/);
 await click('#printTraining');assert.match(one('#printArea').textContent,/Agachamento/);
 await click('#recordWorkout');fill('[data-reps]','10');one('[data-completed]').checked=true;
