@@ -1,0 +1,90 @@
+/* Shared layout boundaries. Do not hide body overflow: content must really fit. */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{min-width:0}
+main,aside,section,article,form,fieldset,.wrap,.shell,.layout,.shell>*,.layout>*,.field,.card,.panel,.stat,.row>*,.toolbar>*,.actions>*,.report-actions>*,.student-section,.student-value,.student-hub-head>*,.student-card>*,[style*="grid-template-columns"]>*{min-width:0}
+img,video,svg{max-width:100%}
+input,select,textarea{min-width:0;max-width:100%}
+button{max-width:100%;touch-action:manipulation}
+h1,h2,h3,p,.muted,.student-value,.student-badge,.prescription-note,.guidance-body,.row b,.row small,.student-card{overflow-wrap:anywhere}
+body .shell{grid-template-columns:235px minmax(0,1fr)}
+body .stats,body .cards{grid-template-columns:repeat(3,minmax(0,1fr))}
+body .form,body .student-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+body .student-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+body .student-overview{grid-template-columns:repeat(3,minmax(0,1fr))}
+body .student-card{grid-template-columns:minmax(0,1fr) auto}
+body .nav{min-width:0;max-width:100%}
+.nav button,.tabs button,.atab{flex-shrink:0}
+.student-hub-tabs,.assessment-tabs,.tabs{min-width:0;max-width:100%;overscroll-behavior-inline:contain}
+.toolbar,.actions,.report-actions{flex-wrap:wrap}
+body .report-actions button{white-space:normal}
+.table-scroll{width:100%;max-width:100%;min-width:0;overflow-x:auto;overscroll-behavior-inline:contain;margin:14px 0}
+.table-scroll:focus-visible{outline:3px solid var(--p,var(--purple,#7135e8));outline-offset:3px}
+.table-scroll table{width:100%;border-collapse:collapse}
+body dialog{max-width:calc(100vw - 24px);max-height:90vh;max-height:90dvh;overflow:auto;margin:auto}
+.modalhead{gap:12px}.modalhead h2{overflow-wrap:anywhere}
+.modalhead button{flex-shrink:0}
+body .toast{max-width:calc(100vw - 32px);overflow-wrap:anywhere}
+@media screen and (max-width:850px){
+ body .layout .cards,body .layout .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+ body .student-kpis,body .student-overview{grid-template-columns:repeat(2,minmax(0,1fr))}
+ body .student-card{grid-template-columns:minmax(0,1fr)}
+}
+@media screen and (max-width:800px){
+ body .shell{grid-template-columns:minmax(0,1fr)}
+ body .shell>aside{max-width:100%;overflow-x:auto;padding:10px 12px}
+ body .nav{display:flex;overflow-x:auto;gap:4px}
+ body .nav button{white-space:nowrap;min-height:44px}
+ body .shell>main{width:100%;padding:28px 16px 64px}
+ body .shell .stats,body .shell .cards{grid-template-columns:minmax(0,1fr)}
+ body .form{grid-template-columns:minmax(0,1fr)}
+ body .form .field.full{grid-column:auto}
+ .student-hub-head{flex-direction:column}
+ body .shell h1{font-size:clamp(32px,8vw,54px);line-height:1.05}
+ body .shell h2{font-size:clamp(22px,5.5vw,28px);line-height:1.2}
+ body dialog .modal{padding:20px}
+ body .toolbar{align-items:flex-start;gap:12px}
+ body .toolbar>.report-actions{justify-content:flex-start}
+ input,select,textarea{font-size:16px} /* Avoid iOS form-focus zoom. */
+ body[data-lg-page="home"] .hero-copy{margin-left:16px!important;margin-right:16px;padding-right:0}
+ body[data-lg-page="home"] .hero h1{font-size:clamp(48px,11vw,86px);line-height:.9}
+ body[data-lg-page="home"] .eyebrow{line-height:1.5;letter-spacing:.08em}
+ body[data-lg-page="home"] .eyebrow:before{flex-shrink:0}
+ body[data-lg-page="home"] .hero-side{min-height:380px}
+ body[data-lg-page="home"] .login-modal{width:min(430px,calc(100vw - 24px));max-width:calc(100vw - 24px);padding:0}
+ body[data-lg-page="home"] .login-box{width:100%;max-width:430px;padding:24px}
+}
+@media screen and (max-width:560px){
+ body .student-kpis,body .student-overview,body .student-grid,body .stats,body .cards{grid-template-columns:minmax(0,1fr)}
+ body .layout .cards,body .layout .stats{grid-template-columns:minmax(0,1fr)}
+ body .student-hub-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;overflow:visible}
+ body .student-hub-tabs button{white-space:normal;min-height:44px;padding:11px 8px}
+ body .student-overview .card{min-height:0;padding:16px}
+ body .student-section{padding:16px}
+ body .student-tools input{max-width:none;flex-basis:100%}
+ body .row{flex-direction:column;align-items:stretch;gap:12px}
+ body .row>.report-actions{justify-content:flex-start;margin:0}
+ body .toolbar{flex-direction:column;align-items:stretch}
+ body .toolbar select{width:100%}
+ .actions{justify-content:flex-start}
+ body .report-actions{gap:8px}
+ .primary,.ghost,.out{min-height:44px}
+ body dialog .modal{padding:16px}
+ body dialog .modalhead{align-items:flex-start}
+ body dialog .modalhead h2{font-size:24px;margin-top:0}
+ body #form [style*="grid-template-columns"]{grid-template-columns:minmax(0,1fr)!important}
+ body .toast{left:16px;right:16px;bottom:16px;max-width:none}
+ body[data-lg-page="cadastro"] .yn{grid-template-columns:minmax(0,1fr)}
+ body[data-lg-page="cadastro"] .birth-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+ body[data-lg-page="cadastro"] .birth-grid input,body[data-lg-page="cadastro"] .birth-grid select{padding:12px 5px}
+ body[data-lg-page="home"] .brand{gap:8px;font-size:13px}
+ body[data-lg-page="home"] .brand img{width:34px;height:34px}
+ body[data-lg-page="home"] .login-btn{padding:12px;min-height:44px}
+ body[data-lg-page="home"] .section h2{font-size:clamp(36px,10vw,56px)}
+ body[data-lg-page="home"] .manifesto-left,body[data-lg-page="home"] .manifesto-right{padding:56px 20px;min-height:0}
+ body[data-lg-page="senha"] main{padding:22px 18px;margin:24px auto}
+}
+@media print{
+ .table-scroll{overflow:visible;max-width:none;margin:0}
+ body .shell{display:block}
+ body .shell>main{padding:0;width:100%;max-width:none}
+}
