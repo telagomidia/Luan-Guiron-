@@ -1,5 +1,5 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-function load(){const c={URL,Date,AbortController,setTimeout,clearTimeout,LG_AUTH:{deadline:fn=>fn()}};c.window=c;vm.createContext(c);for(const f of ['portal-model.js','portal-views.js'])vm.runInContext(fs.readFileSync(__dirname+'/../'+f,'utf8'),c);return c;}
+function load(){const c={URL,Date,AbortController,setTimeout,clearTimeout,LG_AUTH:{deadline:fn=>fn()}};c.window=c;vm.createContext(c);for(const f of ['anamnesis-schema.js','portal-model.js','portal-views.js'])vm.runInContext(fs.readFileSync(__dirname+'/../'+f,'utf8'),c);return c;}
 const c=load(),M=c.LG_PORTAL,V=c.LG_PORTAL_VIEWS;
 const row=()=>({exercise_id:'e1',set_number:'1',reps:'10',load_kg:'0',rir:'0',completed:true});
 test('actual series preserve zero and comma decimals',()=>{const r=row();r.load_kg='12,5';assert.equal(M.normalizeSets([r])[0].load_kg,12.5);assert.equal(M.normalizeSets([row()])[0].rir,0);});

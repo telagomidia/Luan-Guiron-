@@ -1,11 +1,13 @@
 (() => {
  'use strict';
- const form=document.querySelector('#onboarding'),pages=[...form.querySelectorAll('.page')],dots=[...document.querySelectorAll('.dot')];
+ const form=document.querySelector('#onboarding');
+ form.innerHTML=LG_ANAM.signupPages();
+ document.querySelector('.steps').innerHTML=LG_ANAM.sections.map((_,i)=>'<i class="dot'+(i===0?' on':'')+'"></i>').join('');
+ const pages=[...form.querySelectorAll('.page')],dots=[...document.querySelectorAll('.dot')];
  const back=document.querySelector('#back'),next=document.querySelector('#next'),status=document.querySelector('#err');
  const existing=form.elements.existing_access,guide=document.querySelector('#resumeGuide');
  let step=0,flow;
  const showStatus=text=>{status.textContent=text;};
- document.querySelector('#parq').innerHTML=LG_PORTAL.parqQuestions.map((q,i)=>'<div class="yn"><label for="parq_'+i+'">'+LG_PORTAL.esc(q)+'</label><select id="parq_'+i+'" name="parq_'+i+'" required><option value="">Selecione</option><option value="no">Não</option><option value="yes">Sim</option></select></div>').join('');
  const bd=document.querySelector('#birth_day'),bm=document.querySelector('#birth_month'),by=document.querySelector('#birth_year');
  by.max=String(new Date().getFullYear());
  for(let d=1;d<=31;d++)bd.insertAdjacentHTML('beforeend','<option value="'+d+'">'+d+'</option>');
@@ -16,7 +18,7 @@
  }
  [bd,bm,by].forEach(x=>x.addEventListener('change',syncBirth));by.addEventListener('input',syncBirth);
  function show(){
-  document.querySelector('#stepLabel').textContent='Etapa '+(step+1)+' de '+pages.length+' · '+['Seu cadastro','Objetivos e experiência','Saúde e segurança','Rotina e acesso'][step];
+  document.querySelector('#stepLabel').textContent='Etapa '+(step+1)+' de '+pages.length+' · '+LG_ANAM.sections[step].title;
   pages.forEach((p,i)=>p.classList.toggle('on',i===step));dots.forEach((d,i)=>d.classList.toggle('on',i<=step));
   back.style.visibility=step?'visible':'hidden';
   next.textContent=step===pages.length-1?(existing.checked?'Entrar e enviar anamnese':'Criar acesso e enviar'):'Continuar →';

@@ -20,6 +20,7 @@ jobs:
           HAPPY_DOM_ENTRY="$RUNNER_TEMP/portal-ui/node_modules/happy-dom/lib/index.js" node tests/portal-ui.check.mjs
           HAPPY_DOM_ENTRY="$RUNNER_TEMP/portal-ui/node_modules/happy-dom/lib/index.js" node tests/dashboard-ui.check.mjs
           HAPPY_DOM_ENTRY="$RUNNER_TEMP/portal-ui/node_modules/happy-dom/lib/index.js" node tests/onboarding-ui.check.mjs
+          HAPPY_DOM_ENTRY="$RUNNER_TEMP/portal-ui/node_modules/happy-dom/lib/index.js" node tests/anamnesis-ui.check.mjs
       - name: Mobile and desktop Chromium layout
         run: |
           npm install --prefix "$RUNNER_TEMP/mobile-ui" playwright@1.58.2 --no-audit --no-fund
