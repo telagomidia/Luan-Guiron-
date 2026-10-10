@@ -21,6 +21,8 @@
   for(const [t,parent,key] of [['workout_sessions','workouts','workout_id'],['exercise_sets','workout_exercises','exercise_id']])for(const r of value.tables[t])if(!indexes[parent].has(String(r[key])))fail('Referência sem registro: '+t+'.'+key);
   for(const n of value.private_notes)if(!indexes.profiles.has(String(n.profile_id))||typeof n.observations!=='string')fail('Observação privada inválida.');
   const names=new Set();for(const f of value.storage_files){const key=fileKey(f);if(names.has(key))fail('Arquivo duplicado.');names.add(key);}
+  for(const p of value.tables.progress_photos)if(p.storage_path&&!names.has('progress-photos/'+p.storage_path))fail('Backup incompleto: foto cadastrada sem arquivo no Storage.');
+  for(const a of value.tables.assessments)if(a.bioimpedance_pdf_path&&!names.has('assessment-documents/'+a.bioimpedance_pdf_path)&&!names.has('assessment-docs/'+a.bioimpedance_pdf_path))fail('Backup incompleto: PDF cadastrado sem arquivo no Storage.');
   if(encoder.encode(JSON.stringify(value)).length>20*1024*1024)fail('Dados do backup excedem 20 MB.');
   return value;
  }
