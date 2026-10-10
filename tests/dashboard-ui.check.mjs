@@ -7,7 +7,7 @@ const w=new Window({url:'https://example.test/admin.html',settings:{disableCSSFi
 w.document.write(read('admin.html').replace(/<script\b[\s\S]*?<\/script>/g,''));
 let fail=false,resolvePending;
 const students=Array.from({length:6},(_,i)=>({id:'s'+i,full_name:i===0?'<img src=x>':'Aluno '+i,role:'student'}));
-w.LG_AUTH={createClient:()=>({from(table){const query={select(){return query},eq(){return query},order(){return query},then(resolve){if(resolvePending){resolvePending.push(()=>resolve({data:[],count:0,error:null}));return}resolve({data:table==='profiles'?students:[],count:table==='profiles'?6:0,error:fail&&table!=='profiles'?{message:'offline'}:null})}};return query}})};
+w.LG_AUTH={createClient:()=>({rpc:async()=>({data:[]}),from(table){const query={select(){return query},eq(){return query},order(){return query},then(resolve){if(resolvePending){resolvePending.push(()=>resolve({data:[],count:0,error:null}));return}resolve({data:table==='profiles'?students:[],count:table==='profiles'?6:0,error:fail&&table!=='profiles'?{message:'offline'}:null})}};return query}})};
 const inline=[...read('admin.html').matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)].find(x=>!x[1].includes('src='))[2];
 w.eval(inline.replace('boot();','').replace('const sb=','var sb=').replace('const esc=','var esc=').replace('let me=null,students=[]','var me=null,students=[]')+'\nme={full_name:"Professor QA",id:"trainer"};');
 await w.dashboard();assert.ok(w.document.querySelector('#dashboardPriorities'));
