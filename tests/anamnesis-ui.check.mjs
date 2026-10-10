@@ -27,10 +27,11 @@ await navigate('history');await navigate('anamnesis');assert.equal(el('[name="me
 await w.happyDOM.close();
 
 const t=new Window({url:'https://example.test/admin.html',settings});t.document.write(read('admin.html').replace(/<script\b[\s\S]*?<\/script>/g,''));
-const teacherClient={rpc:async()=>({data:[]}),from(table){const q={select(){return this;},eq(){return this;},order(){return this;},then(resolve,reject){return Promise.resolve({data:table==='profiles'?[profile]:table==='anamneses'?[newRecord]:[]}).then(resolve,reject);}};return q;}};
+const teacherClient={rpc:async()=>({data:[]}),from(table){let single=false;const q={select(){return this;},eq(){return this;},order(){return this;},limit(){return this;},maybeSingle(){single=true;return this;},then(resolve,reject){return Promise.resolve({data:table==='profiles'?[profile]:table==='anamneses'?single?newRecord:[newRecord]:[]}).then(resolve,reject);}};return q;}};
 t.LG_AUTH={createClient:()=>teacherClient};t.eval(read('anamnesis-schema.js'));
 const inline=[...read('admin.html').matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)].find(x=>!x[1].includes('src='))[2];
 t.eval(inline.replace('boot();','').replace('const sb=','var sb=').replace('const esc=','var esc=').replace('let me=null,students=[]','var me=null,students=[]')+'\nme={id:"qa-teacher",full_name:"Professor QA"};');t.eval(read('student-management.js'));
 await t.openStudentHub(profile.id,'anam');const report=t.document.querySelector('#studentHubBody');assert.equal(report.querySelectorAll('.anam-section').length,8);assert.match(report.textContent,/QA body_priorities/);assert.match(report.textContent,/QA attendance_barriers/);assert.match(report.textContent,/170 cm/);assert.match(report.textContent,/Não informado/);
-console.log('PASS: 48-field student save/read/edit, own linkage, decimal units, explicit clear, legacy preservation and seven-group teacher panel plus PAR-Q');
+await t.viewAnamnesis(profile.id);assert.equal(t.document.querySelector('#form').querySelectorAll('.anam-section').length,8);assert.match(t.document.querySelector('#form').textContent,/QA attendance_barriers/);
+console.log('PASS: 48-field student save/read/edit, own linkage, decimal units, explicit clear, legacy preservation and seven-group teacher profile/modal plus PAR-Q');
 await t.happyDOM.close();
