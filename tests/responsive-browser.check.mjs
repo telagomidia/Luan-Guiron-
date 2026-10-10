@@ -61,7 +61,7 @@ try{
    }
    if(name==='admin'){
     assert.equal(await page.locator('.table-scroll table').count(),1);
-    if(width<=560){const cols=await page.locator('.student-grid').evaluate(el=>getComputedStyle(el).gridTemplateColumns);assert.ok(!cols.includes(' '),'Student profile must have one column');}
+    if(width<=560){const cols=await page.locator('.student-grid').evaluateAll(els=>els.map(el=>getComputedStyle(el).gridTemplateColumns));assert.ok(cols.every(c=>!c.includes(' ')),'Student profile and anamnesis groups must have one column');}
     if(width===390)await page.screenshot({path:path.join(screenshots,'admin-mobile.png'),fullPage:true});
     await page.locator('#form').evaluate((form,html)=>form.innerHTML='<div class="form"><div class="field"><label>Nome completo</label><input value="Aluno QA"></div><div class="field"><label>Treino</label><select><option>'+html+'</option></select></div><div class="field full"><label>Observação</label><textarea></textarea></div></div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:15px"><input><input><input></div><div class="actions"><button class="ghost">Cancelar</button><button class="primary">Salvar avaliação completa</button></div>',long);
     await page.locator('#modal').evaluate(dialog=>dialog.showModal());
