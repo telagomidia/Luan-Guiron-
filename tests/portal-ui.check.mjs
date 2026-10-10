@@ -17,7 +17,7 @@ const assessment={id:'assessment',assessed_at:'2026-10-08',weight_kg:70,body_fat
 let recordCalls=0,saveAnamCalls=0,failRecord=true,pendingResolve;
 const api={profile:async()=>profile,plans:async()=>[plan],plan:async()=>({plan,workouts:[workout]}),sessions:async()=>[],assessments:async()=>[assessment,{...assessment,id:'previous',assessed_at:'2026-09-01',weight_kg:71}],anamnesis:async()=>null,photos:async()=>[{id:'p1',photo_date:'2026-10-08',view:'front',storage_path:'own/now.png'},{id:'p2',photo_date:'2026-09-01',view:'front',storage_path:'own/before.png'}],guidance:async()=>[{title:'Orientação QA',body:'<script>unsafe</script>',created_at:'2026-10-08'}],assessment:async()=>({assessment,circ:null,skin:null,strength:[],vo2:[],stages:[]}),signed:async()=> 'https://storage.test/private?token=qa',record:async()=>{recordCalls++;if(failRecord)throw{code:'request_timeout'};return new Promise(r=>pendingResolve=r);},saveAnam:async()=>{saveAnamCalls++;return{id:'anam'};},updateProfile:async values=>({id:'own',...values}),password:async()=>{}};
 window.LG_AUTH={createClient:()=>({}),access:async()=>({user:{id:'own'},profile}),sessionExpired:()=>false,message:()=> 'Falha',deadline:fn=>fn()};
-for(const f of ['portal-model.js','portal-views.js'])window.eval(fs.readFileSync(root+f,'utf8'));
+for(const f of ['anamnesis-schema.js','portal-model.js','portal-views.js'])window.eval(fs.readFileSync(root+f,'utf8'));
 window.LG_PORTAL={...window.LG_PORTAL,createApi:()=>api};
 window.eval(fs.readFileSync(root+'portal-app.js','utf8'));
 const doc=window.document,one=s=>{const node=doc.querySelector(s);assert.ok(node,'Missing '+s);return node;};

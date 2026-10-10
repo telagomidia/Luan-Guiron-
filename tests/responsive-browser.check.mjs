@@ -20,7 +20,7 @@ let count=0;
 try{
  for(const width of [320,390,430,768,1440]){
   const context=await browser.newContext({viewport:{width,height:900},deviceScaleFactor:1});const page=await context.newPage();
-  await page.route('**/*',route=>{const url=new URL(route.request().url());return route.fulfill({status:200,contentType:url.pathname.endsWith('.css')?'text/css':'image/svg+xml',body:url.pathname.endsWith('/lg-design.css')?read('lg-design.css'):url.pathname.endsWith('/responsive.css')?read('responsive.css'):url.pathname.endsWith('/portal.css')?read('portal.css'):'<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44"><rect width="44" height="44" fill="white"/></svg>'});});
+  await page.route('**/*',route=>{const url=new URL(route.request().url());return route.fulfill({status:200,contentType:url.pathname.endsWith('.css')?'text/css':'image/svg+xml',body:url.pathname.endsWith('/lg-design.css')?read('lg-design.css'):url.pathname.endsWith('/responsive.css')?read('responsive.css'):url.pathname.endsWith('/portal.css')?read('portal.css'):url.pathname.endsWith('/anamnesis.css')?read('anamnesis.css'):'<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44"><rect width="44" height="44" fill="white"/></svg>'});});
   async function fits(label){
    await page.evaluate(()=>document.fonts.ready);
    const result=await page.evaluate(()=>({viewport:innerWidth,width:document.documentElement.scrollWidth,body:document.body.scrollWidth,mainRight:document.querySelector('main').getBoundingClientRect().right}));
@@ -40,6 +40,16 @@ try{
    }
    await page.addScriptTag({content:read('responsive.js')});
    await fits(name);
+   if(name==='portal'||name==='admin'){
+    await page.addScriptTag({content:read('anamnesis-schema.js')});
+    await page.evaluate(name=>{
+     const answers=Object.fromEntries(LG_ANAM.fields.map(f=>[f.key,f.type==='number'?170:f.type==='date'?'1990-01-01':f.type==='select'?f.options[0]:'Resposta sintética comprida para testar a leitura no celular. '.repeat(5)]));
+     const row={answers,parq_answers:Object.fromEntries(Array.from({length:7},(_,i)=>['q'+(i+1),{answer:'no'}]))};
+     if(name==='portal')document.querySelector('#content').insertAdjacentHTML('beforeend','<form class="panel">'+LG_ANAM.formSections(row,{})+LG_ANAM.review+'</form>');
+     else document.querySelector('#view').insertAdjacentHTML('beforeend',LG_ANAM.report(row,{}));
+    },name);
+    await fits(name+' seven-group anamnesis');
+   }
    if(name==='cadastro'){
     // All onboarding steps, including PAR-Q, not only the first visible step.
     const total=await page.locator('.page').count();
