@@ -99,7 +99,10 @@ begin
  if new.observations is not null and auth.uid() is not null and not public.is_trainer() then
    raise exception 'not_authorized';
  end if;
- if nullif(trim(new.observations),'') is null then
+ -- NULL means untouched for old cached clients; explicit empty text clears a note.
+ if new.observations is null then
+   null;
+ elsif trim(new.observations)='' then
    delete from lg_private.profile_notes where profile_id=new.id;
  else
    insert into lg_private.profile_notes(profile_id,observations) values(new.id,new.observations)

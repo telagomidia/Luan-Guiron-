@@ -24,6 +24,11 @@ do $$ declare b jsonb; begin
  if exists(select 1 from public.profiles where observations is not null) then raise exception 'Public note leaked'; end if;
  update public.profiles set goal='Other field updated' where id='99999999-0000-4000-8000-000000000002';
  if not exists(select 1 from jsonb_array_elements(public.get_trainer_profile_notes()) n where n->>'profile_id'='99999999-0000-4000-8000-000000000002' and n->>'observations'='PRIVATE QA NOTE') then raise exception 'Unrelated profile update lost note'; end if;
+ update public.profiles set observations=null where id='99999999-0000-4000-8000-000000000002';
+ if not exists(select 1 from lg_private.profile_notes where profile_id='99999999-0000-4000-8000-000000000002') then raise exception 'Cached client null erased private note'; end if;
+ update public.profiles set observations='' where id='99999999-0000-4000-8000-000000000002';
+ if exists(select 1 from lg_private.profile_notes where profile_id='99999999-0000-4000-8000-000000000002') then raise exception 'Explicit note clearing failed'; end if;
+ update public.profiles set observations='PRIVATE QA NOTE' where id='99999999-0000-4000-8000-000000000002';
  update storage.objects set metadata='{"qa":true}' where name='99999999-0000-4000-8000-000000000002/security-qa.pdf';
  if not found then raise exception 'Teacher document update denied'; end if;
  b:=public.export_system_backup();
