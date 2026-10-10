@@ -47,3 +47,13 @@ O ensaio SQL deste trabalho usa tabelas TEMPORARY e ROLLBACK, compara conteúdo 
 Backup nativo/PITR, cópia automática externa, MFA do professor e proteção contra senhas vazadas exigem decisão/configuração própria. Nenhum serviço pago foi habilitado. O aviso de proteção de senha vazada desabilitada deve ser tratado no painel quando disponível no plano; não afirmar que foi resolvido por SQL.
 
 Referências oficiais: [Backups](https://supabase.com/docs/guides/platform/backups), [Segurança de senhas](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection), [SECURITY DEFINER exposta](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable), [OWASP armazenamento criptográfico](https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html), [OWASP PBKDF2](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html).
+
+## Revisão e evidências
+
+- Migração `security_backup_hardening` aplicada ao projeto existente; funções `create-student` v3 e `delete-student` v2 publicadas com verificação JWT.
+- 194 testes Node aprovados. Integrações DOM da área do aluno e do dashboard aprovadas.
+- CI Chromium aprovado: 60 verificações de layout em seis páginas a 320/390/430/768/1440 px, e fluxo completo do backup a 320/390/768/1440 px. Inclui senha divergente, clique duplicado, criptografia/download, conferência de arquivo salvo, senha errada, navegação/limpeza e falha de RPC.
+- Testes reais em transação aprovados: professor/aluno ativo e inativo; proteção de notas; metadados editáveis não concedem papel; ativação administrativa por e-mail confirmado e allowlist consumida; negação de anônimo; PDF substituível; recuperação temporária de 17 tabelas com igualdade de conteúdo e verificação de vínculos. Todos os dados sintéticos revertidos por ROLLBACK.
+- Advisors: eliminados avisos de funções SECURITY DEFINER públicas executáveis por authenticated. Allowlist administrativa permanece intencionalmente fechada por RLS sem política permissiva. Aviso de senha vazada segue pendente de configuração da plataforma.
+- Nenhum arquivo real existe nos buckets no momento da auditoria; cópia/integridade de bytes foi testada com arquivo binário sintético. Não foi criada cópia real fora do servidor: o professor deve salvar e conferir o primeiro `.lgbackup` no painel.
+- Revisão feita pelo agente implementador, não uma auditoria independente. Nenhuma conta, treino, avaliação ou arquivo real foi excluído. O layout aprovado foi preservado.

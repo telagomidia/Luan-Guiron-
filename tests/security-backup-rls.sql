@@ -3,10 +3,14 @@ begin;
 insert into auth.users(id,email,email_confirmed_at,raw_user_meta_data) values
  ('99999999-0000-4000-8000-000000000001','security-qa-trainer@example.invalid',now(),'{"full_name":"Security QA Trainer"}'),
  ('99999999-0000-4000-8000-000000000002','security-qa-student@example.invalid',now(),'{"full_name":"Security QA Student","role":"trainer"}'),
- ('99999999-0000-4000-8000-000000000003','security-qa-foreign@example.invalid',now(),'{"full_name":"Security QA Foreign"}');
+ ('99999999-0000-4000-8000-000000000003','security-qa-foreign@example.invalid',now(),'{"full_name":"Security QA Foreign"}'),
+ ('99999999-0000-4000-8000-000000000004','security-qa-unverified@example.invalid',null,'{"full_name":"Security QA Unverified"}');
 update public.profiles set role='trainer' where id='99999999-0000-4000-8000-000000000001';
 insert into public.admin_activation_allowlist(email,role,full_name,claimed_by,claimed_at)
 values('security-qa-trainer@example.invalid','trainer','QA','99999999-0000-4000-8000-000000000001',now());
+insert into public.admin_activation_allowlist(email,role,full_name) values
+ ('security-qa-foreign@example.invalid','trainer','QA First Claim'),
+ ('security-qa-unverified@example.invalid','trainer','QA Unverified');
 insert into public.training_plans(id,student_id,name,created_by) values
  ('99999999-0000-4000-8000-000000000010','99999999-0000-4000-8000-000000000002','Security QA','99999999-0000-4000-8000-000000000001');
 insert into storage.objects(bucket_id,name) values ('assessment-documents','99999999-0000-4000-8000-000000000002/security-qa.pdf');
@@ -18,6 +22,8 @@ do $$ declare b jsonb; begin
  update public.profiles set observations='PRIVATE QA NOTE' where id='99999999-0000-4000-8000-000000000002';
  if not exists(select 1 from lg_private.profile_notes where profile_id='99999999-0000-4000-8000-000000000002' and observations='PRIVATE QA NOTE') then raise exception 'Note not preserved'; end if;
  if exists(select 1 from public.profiles where observations is not null) then raise exception 'Public note leaked'; end if;
+ update public.profiles set goal='Other field updated' where id='99999999-0000-4000-8000-000000000002';
+ if not exists(select 1 from jsonb_array_elements(public.get_trainer_profile_notes()) n where n->>'profile_id'='99999999-0000-4000-8000-000000000002' and n->>'observations'='PRIVATE QA NOTE') then raise exception 'Unrelated profile update lost note'; end if;
  update storage.objects set metadata='{"qa":true}' where name='99999999-0000-4000-8000-000000000002/security-qa.pdf';
  if not found then raise exception 'Teacher document update denied'; end if;
  b:=public.export_system_backup();
@@ -35,6 +41,17 @@ do $$ begin
  begin perform public.get_trainer_profile_notes(); raise exception 'Student notes allowed' using errcode='ZX001'; exception when raise_exception then null; end;
  begin perform public.claim_admin_profile(); raise exception 'Unlisted claim allowed' using errcode='ZX001'; exception when raise_exception then null; end;
 end $$;
+select set_config('request.jwt.claims','{"sub":"99999999-0000-4000-8000-000000000004","role":"authenticated","email":"security-qa-trainer@example.invalid"}',true);
+do $$ begin
+ begin perform public.claim_admin_profile(); raise exception 'Unverified claim allowed' using errcode='ZX001'; exception when raise_exception then null; end;
+end $$;
+select set_config('request.jwt.claims','{"sub":"99999999-0000-4000-8000-000000000003","role":"authenticated","email":"wrong@example.invalid"}',true);
+do $$ begin
+ if public.claim_admin_profile()<>'trainer' then raise exception 'Verified first claim failed'; end if;
+end $$;
+-- STABLE authorization reads the calling statement snapshot; check the next request.
+do $$ begin if not public.is_trainer() then raise exception 'First claim role not persisted'; end if; end $$;
+select set_config('request.jwt.claims','{"sub":"99999999-0000-4000-8000-000000000002","role":"authenticated"}',true);
 reset role;
 update public.profiles set active=false where id in ('99999999-0000-4000-8000-000000000001','99999999-0000-4000-8000-000000000002');
 set local role authenticated;
