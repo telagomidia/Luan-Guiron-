@@ -19,12 +19,14 @@ jobs:
           npm install --prefix "$RUNNER_TEMP/portal-ui" happy-dom@20.14.5 --no-audit --no-fund
           HAPPY_DOM_ENTRY="$RUNNER_TEMP/portal-ui/node_modules/happy-dom/lib/index.js" node tests/portal-ui.check.mjs
           HAPPY_DOM_ENTRY="$RUNNER_TEMP/portal-ui/node_modules/happy-dom/lib/index.js" node tests/dashboard-ui.check.mjs
+          HAPPY_DOM_ENTRY="$RUNNER_TEMP/portal-ui/node_modules/happy-dom/lib/index.js" node tests/onboarding-ui.check.mjs
       - name: Mobile and desktop Chromium layout
         run: |
           npm install --prefix "$RUNNER_TEMP/mobile-ui" playwright@1.58.2 --no-audit --no-fund
           node "$RUNNER_TEMP/mobile-ui/node_modules/playwright/cli.js" install --with-deps chromium
           PLAYWRIGHT_ENTRY="$RUNNER_TEMP/mobile-ui/node_modules/playwright/index.mjs" MOBILE_SCREENSHOTS="$RUNNER_TEMP/mobile-layout-screenshots" node tests/responsive-browser.check.mjs
           PLAYWRIGHT_ENTRY="$RUNNER_TEMP/mobile-ui/node_modules/playwright/index.mjs" node tests/backup-browser.check.mjs
+          PLAYWRIGHT_ENTRY="$RUNNER_TEMP/mobile-ui/node_modules/playwright/index.mjs" node tests/onboarding-browser.check.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
