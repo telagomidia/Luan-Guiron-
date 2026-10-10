@@ -18,8 +18,9 @@
  const fields=sections.flatMap(s=>s.fields);
  const parqQuestions=['Algum médico já disse que você possui problema cardíaco e que só deveria realizar atividade física recomendada por um médico?','Você sente dor no peito durante atividade física?','No último mês, sentiu dor no peito mesmo sem realizar atividade física?','Você já perdeu o equilíbrio por tontura ou já perdeu a consciência?','Possui algum problema ósseo ou articular que possa piorar com atividade física?','Algum médico prescreveu medicamento para pressão arterial ou problema cardíaco?','Existe algum outro motivo de saúde pelo qual você não deveria realizar atividade física?'];
  function value(row,key,profile={}){
-  if(row?.answers&&Object.hasOwn(row.answers,key))return row.answers[key]??'';
+  if(row?.answers?.questionnaire_version===2&&Object.hasOwn(row.answers,key))return row.answers[key]??'';
   if(row?.[key]!==null&&row?.[key]!==undefined)return row[key];
+  if(row?.answers&&Object.hasOwn(row.answers,key))return row.answers[key]??'';
   return ['full_name','birth_date','phone'].includes(key)?profile[key]??'':'';
  }
  function normalize(values,previous={}){
@@ -51,9 +52,8 @@
   return '<div class="field '+(f.type==='textarea'?'full':'')+'">'+label+control+(f.hint?'<small class="muted">'+esc(f.hint)+'</small>':'')+'</div>';
  }
  function parq(row={},className='parq-question'){
-  const answers=row?.parq_answers||row?.answers?.parq_answers||{};
   return '<h3>PAR-Q · saúde e segurança</h3><p class="muted">Respostas positivas sinalizam informações que o profissional deve revisar; não são diagnósticos.</p>'+parqQuestions.map((q,i)=>{
-   const a=answers['q'+(i+1)]?.answer;
+   const a=row?.parq_answers?.['q'+(i+1)]?.answer??row?.answers?.parq_answers?.['q'+(i+1)]?.answer;
    return '<div class="'+className+'"><label for="parq_'+i+'">'+esc(q)+'</label><select id="parq_'+i+'" name="parq_'+i+'" required><option value="">Selecione</option><option value="no"'+(a==='no'?' selected':'')+'>Não</option><option value="yes"'+(a==='yes'?' selected':'')+'>Sim</option></select></div>';
   }).join('');
  }
@@ -64,8 +64,7 @@
  function report(row,profile={}){
   const display=(f,v)=>v===null||v===undefined||v===''?'Não informado':f.type==='date'&&/^\d{4}-\d{2}-\d{2}$/.test(String(v))?String(v).split('-').reverse().join('/'):esc(v)+(f.key==='height_cm'?' cm':f.key==='weight_kg'?' kg':f.key==='water_liters'?' L':f.key==='sleep_hours'?' h':'');
   const groups=sections.map((s,i)=>'<section class="student-section anam-section"><h2>'+(i+1)+'. '+esc(s.title)+'</h2><div class="student-grid">'+s.fields.map(f=>'<div class="student-value"><small>'+esc(f.label)+'</small><div style="white-space:pre-wrap">'+display(f,value(row,f.key,profile))+'</div></div>').join('')+'</div></section>').join('');
-  const pq=row.parq_answers||row.answers?.parq_answers||{};
-  return '<p class="muted">Altura e peso são informações declaradas pelo aluno. Registros anteriores mantêm suas respostas; perguntas acrescentadas podem estar sem resposta.</p>'+groups+'<section class="student-section anam-section"><h2>PAR-Q · saúde e segurança</h2>'+parqQuestions.map((question,i)=>'<div class="student-value"><small>'+esc(question)+'</small>'+({yes:'Sim',no:'Não'}[pq['q'+(i+1)]?.answer]||'Não informado')+'</div>').join('')+'</section>';
+  return '<p class="muted">Altura e peso são informações declaradas pelo aluno. Registros anteriores mantêm suas respostas; perguntas acrescentadas podem estar sem resposta.</p>'+groups+'<section class="student-section anam-section"><h2>PAR-Q · saúde e segurança</h2>'+parqQuestions.map((question,i)=>'<div class="student-value"><small>'+esc(question)+'</small>'+({yes:'Sim',no:'Não'}[row.parq_answers?.['q'+(i+1)]?.answer??row.answers?.parq_answers?.['q'+(i+1)]?.answer]||'Não informado')+'</div>').join('')+'</section>';
  }
  function signupPages(){
   const birth='<div class="field full"><label for="birth_day">Data de nascimento</label><div class="birth-grid"><select id="birth_day" aria-label="Dia" required><option value="">Dia</option></select><select id="birth_month" aria-label="Mês" required><option value="">Mês</option>'+['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'].map((m,i)=>'<option value="'+(i+1)+'">'+m+'</option>').join('')+'</select><input id="birth_year" type="number" min="1900" aria-label="Ano" placeholder="Ano" required></div><input name="birth_date" type="hidden"></div>';
