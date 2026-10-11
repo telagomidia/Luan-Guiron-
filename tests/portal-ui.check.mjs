@@ -2,11 +2,13 @@
 // HAPPY_DOM_ENTRY=/tmp/portal-ui/node_modules/happy-dom/lib/index.js node tests/portal-ui.check.mjs
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
+import {saveClock} from './anamnesis-save-clock.mjs';
 import {fileURLToPath} from 'node:url';
 const {Window}=await import(process.env.HAPPY_DOM_ENTRY||'happy-dom');
 const root=fileURLToPath(new URL('../',import.meta.url));
 const window=new Window({url:'https://telagomidia.github.io/Luan-Guiron-/portal.html',settings:{disableCSSFileLoading:true,disableJavaScriptFileLoading:true,disableComputedStyleRendering:true}});
 window.document.write(fs.readFileSync(root+'portal.html','utf8').replace(/<script[\s\S]*?<\/script>/g,''));
+const clock=saveClock(window);
 window.confirm=()=>true;window.print=()=>{};
 window.HTMLElement.prototype.scrollIntoView=function(){};
 const profile={id:'own',full_name:'Aluno QA',email:'qa@example.invalid',phone:'',role:'student',active:true};
@@ -39,7 +41,7 @@ failRecord=false;one('#recordSession button[type="submit"]').click();await settl
 await route('history');assert.match(one('#content').textContent,/ainda não registrou/);
 await route('assessments');await click('[data-assessment]');await click('#openBio');assert.equal(one('#actionStatus a').href,'https://storage.test/private?token=qa');
 await route('progress');assert.ok(doc.querySelector('svg'));assert.equal(doc.querySelectorAll('#photoComparison img').length,2);
-await route('anamnesis');fill('[name="training_goal"]','Ganhar força');for(let i=0;i<7;i++)one('[name="parq_'+i+'"]').value='no';one('[name="reviewed"]').checked=true;await click('#anamForm button[type="submit"]');assert.equal(saveAnamCalls,1);assert.match(one('[data-form-status]').textContent,/disponível/);fill('[name="training_goal"]','Novo objetivo');await click('#anamForm button[type="submit"]');assert.equal(saveAnamCalls,2);
+await route('anamnesis');fill('[name="training_goal"]','Ganhar força');for(let i=0;i<7;i++)one('[name="parq_'+i+'"]').value='no';one('[name="reviewed"]').checked=true;await click('#anamForm button[type="submit"]');assert.equal(saveAnamCalls,1);assert.match(one('[data-form-status]').textContent,/disponível/);clock.finish();await settle();assert.equal(window.location.hash,'#home');await route('anamnesis');fill('[name="training_goal"]','Novo objetivo');for(let i=0;i<7;i++)one('[name="parq_'+i+'"]').value='no';one('[name="reviewed"]').checked=true;await click('#anamForm button[type="submit"]');assert.equal(saveAnamCalls,2);clock.finish();await settle();
 await route('guidance');assert.match(one('#content').textContent,/<script>unsafe<\/script>/);assert.equal(doc.querySelector('#content script'),null);
 await route('profile');fill('#profileName','Nome atualizado');await click('#profileForm button[type="submit"]');assert.match(one('#profileForm [data-form-status]').textContent,/atualizados/);fill('#profileName','Nome atualizado novamente');await click('#profileForm button[type="submit"]');assert.match(one('#profileForm [data-form-status]').textContent,/atualizados/);
 fill('#profilePassword','unsaved-password');fill('#profileName','Outra alteração');await click('#profileForm button[type="submit"]');window.confirm=()=>false;await route('home');assert.ok(doc.querySelector('#passwordUpdate'),'Saving profile must not discard another dirty form');window.confirm=()=>true;
