@@ -35,7 +35,7 @@ try{
  }
  const context=await browser.newContext({viewport:{width:390,height:900}}),page=await context.newPage();
  await context.addInitScript(()=>{window.printCalls=0;window.print=()=>window.printCalls++;});
- await page.route('**/*',route=>route.fulfill({contentType:route.request().url().endsWith('.html')?'text/html':'image/webp',body:route.request().url().endsWith('.html')?'<!doctype html><html><body></body></html>':fs.readFileSync(new URL('public/logo-lg.webp',root))}));
+ await context.route('**/*',route=>route.fulfill({contentType:route.request().url().endsWith('.html')?'text/html':'image/webp',body:route.request().url().endsWith('.html')?'<!doctype html><html><body></body></html>':fs.readFileSync(new URL('public/logo-lg.webp',root))}));
  await page.goto('http://qa.test/admin.html');await page.setContent('<!doctype html><html><head></head><body><button id="export">Exportar</button></body></html>');
  for(const f of ['anamnesis-schema.js','anamnesis-pdf.js'])await page.addScriptTag({content:read(f)});
  await page.evaluate(()=>{
@@ -46,10 +46,10 @@ try{
  const opened=context.waitForEvent('page');await page.locator('#export').click();const popup=await opened;await popup.waitForFunction(()=>printCalls===1);assert.equal(await popup.evaluate(()=>opener),null);assert.equal(await popup.locator('.anam-section').count(),8);await popup.locator('#printPdf').click();assert.equal(await popup.evaluate(()=>printCalls),2);await popup.close();
  for(const variant of ['standard','long']){
   const html=await page.evaluate(variant=>{const row=structuredClone(qaRow);if(variant==='long')row.answers.additional_notes=('Informação sintética de rotina, preferências e acompanhamento. '.repeat(75)+' FIM DA RESPOSTA LONGA');return LG_ANAM_PDF.build(row,qaStudent,{logo:'http://qa.test/logo.webp',now:new Date('2026-10-11T12:00:00Z')});},variant);
-  const report=await context.newPage();await report.setContent(html,{waitUntil:'load'});await report.emulateMedia({media:'print'});
+  const report=await context.newPage();await report.setContent(html,{waitUntil:'load'});await report.emulateMedia({media:'print'});assert.ok(await report.locator('.logo').evaluate(img=>img.complete&&img.naturalWidth>0),'LG logo loaded in print view');
   const overflow=await report.evaluate(()=>document.documentElement.scrollWidth>innerWidth);assert.equal(overflow,false);
   const pdf=path.join(output,'anamnesis-'+variant+'.pdf');await report.pdf({path:pdf,preferCSSPageSize:true,printBackground:true});
-  const text=execFileSync('pdftotext',['-layout',pdf,'-'],{encoding:'utf8'});for(const key of ['Aluno sintético QA','Identificação','Histórico de treinamento','Objetivos','Saúde, dores e lesões','Rotina','Alimentação e hábitos','Preferências e aderência','PAR-Q','Documento confidencial'])assert.ok(text.includes(key),key+' present in '+variant+' PDF');assert.ok(!text.includes('Salvar / imprimir PDF'));if(variant==='long')assert.ok(text.includes('FIM DA RESPOSTA LONGA'));
+  const text=execFileSync('pdftotext',['-layout',pdf,'-'],{encoding:'utf8'});for(const key of ['Aluno sintético QA','Identificação','Histórico de treinamento','Objetivos','Saúde, dores e lesões','Rotina','Alimentação e hábitos','Preferências e aderência','PAR-Q','Documento confidencial'])assert.ok(text.includes(key),key+' present in '+variant+' PDF');assert.ok(!text.includes('Salvar / imprimir PDF'));if(variant==='long')assert.ok(text.replace(/\s+/g,' ').includes('FIM DA RESPOSTA LONGA'));
   const pages=text.split('\f').filter(x=>x.trim());assert.ok(pages.length>=2&&pages.length<12,'Reasonable page count: '+pages.length);assert.ok(pages.every(x=>x.trim().length>100),'No near-empty pages');
   execFileSync('pdftoppm',['-scale-to','1200','-png',pdf,path.join(output,'anamnesis-'+variant)]);
   console.log('PASS: '+variant+' PDF, '+pages.length+' A4 pages, complete text, no toolbar, rendered PNGs');await report.close();
