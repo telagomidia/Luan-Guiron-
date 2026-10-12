@@ -29,9 +29,14 @@ const route=async page=>click('[data-page="'+page+'"]');
 const fill=(s,value)=>{one(s).value=value;one(s).dispatchEvent(new window.Event('input',{bubbles:true}));};
 await settle();assert.match(one('#content').textContent,/Olá, Aluno/);
 assert.ok(one('.training-focus').compareDocumentPosition(one('.stats')) & 4,'Training precedes metrics');
-await click('#portalMore');assert.equal(one('#portalMore').getAttribute('aria-expanded'),'true');
-await route('guidance');assert.equal(one('#portalMore').getAttribute('aria-expanded'),'false');assert.ok(one('#portalMore').classList.contains('has-active'));
-await route('home');assert.ok(!one('#portalMore').classList.contains('has-active'));
+await click('#portalMenuToggle');assert.equal(one('#portalMenuToggle').getAttribute('aria-expanded'),'true');
+assert.equal(doc.querySelectorAll('#studentNav [data-page]').length,8);assert.equal(doc.querySelector('#portalMore'),null);
+doc.dispatchEvent(new window.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+assert.equal(one('#portalMenuToggle').getAttribute('aria-expanded'),'false');assert.equal(doc.activeElement,one('#portalMenuToggle'));
+await click('#portalMenuToggle');await click('#content');assert.equal(one('#portalMenuToggle').getAttribute('aria-expanded'),'false');
+await click('#portalMenuToggle');await route('guidance');assert.equal(one('#portalMenuToggle').getAttribute('aria-expanded'),'false');
+assert.equal(one('[data-page="guidance"]').getAttribute('aria-current'),'page');
+await route('home');
 
 await route('training');await click('[data-plan]');assert.match(one('#content').textContent,/Agachamento/);assert.match(one('#content').textContent,/RIR 0/);
 await click('#printTraining');assert.match(one('#printArea').textContent,/Agachamento/);
@@ -44,7 +49,7 @@ await route('progress');assert.ok(doc.querySelector('svg'));assert.equal(doc.que
 await route('anamnesis');fill('[name="training_goal"]','Ganhar força');for(let i=0;i<7;i++)one('[name="parq_'+i+'"]').value='no';one('[name="reviewed"]').checked=true;await click('#anamForm button[type="submit"]');assert.equal(saveAnamCalls,1);assert.match(one('[data-form-status]').textContent,/disponível/);clock.finish();await settle();assert.equal(window.location.hash,'#home');await route('anamnesis');fill('[name="training_goal"]','Novo objetivo');for(let i=0;i<7;i++)one('[name="parq_'+i+'"]').value='no';one('[name="reviewed"]').checked=true;await click('#anamForm button[type="submit"]');assert.equal(saveAnamCalls,2);clock.finish();await settle();
 await route('guidance');assert.match(one('#content').textContent,/<script>unsafe<\/script>/);assert.equal(doc.querySelector('#content script'),null);
 await route('profile');fill('#profileName','Nome atualizado');await click('#profileForm button[type="submit"]');assert.match(one('#profileForm [data-form-status]').textContent,/atualizados/);fill('#profileName','Nome atualizado novamente');await click('#profileForm button[type="submit"]');assert.match(one('#profileForm [data-form-status]').textContent,/atualizados/);
-fill('#profilePassword','unsaved-password');fill('#profileName','Outra alteração');await click('#profileForm button[type="submit"]');window.confirm=()=>false;await route('home');assert.ok(doc.querySelector('#passwordUpdate'),'Saving profile must not discard another dirty form');window.confirm=()=>true;
+fill('#profilePassword','unsaved-password');fill('#profileName','Outra alteração');await click('#profileForm button[type="submit"]');window.confirm=()=>false;await click('#portalMenuToggle');await route('home');assert.ok(doc.querySelector('#passwordUpdate'),'Saving profile must not discard another dirty form');assert.equal(one('#portalMenuToggle').getAttribute('aria-expanded'),'true','Cancelled navigation keeps menu open');window.confirm=()=>true;
 let guidanceResolve;api.guidance=()=>new Promise(r=>guidanceResolve=r);await route('guidance');await route('history');guidanceResolve([{title:'Late response',body:'stale'}]);await settle();assert.match(one('#content').textContent,/Meu histórico/);assert.ok(!one('#content').textContent.includes('Late response'));
 api.plans=async()=>{throw{code:'request_timeout'}};await route('training');assert.match(one('#content').textContent,/Não foi possível abrir/);assert.ok(doc.querySelector('#retryPortal'));
 console.log('PASS: eight routes, workout prescription/print, session failure/retry/double submit, history empty, private PDF, evolution/photos, anamnesis repeated edits, XSS escaping, profile repeated edits, dirty form protection, stale navigation response, visible query failure');

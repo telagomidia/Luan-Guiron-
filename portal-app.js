@@ -4,6 +4,17 @@
  const content=document.querySelector('#content'),nav=document.querySelector('#studentNav');
  const routes=[['home','Início'],['training','Meu treino'],['history','Histórico'],['assessments','Avaliações'],['progress','Evolução'],['anamnesis','Anamnese'],['guidance','Orientações'],['profile','Perfil']];
  let client,api,profile,route='home',revision=0,busy=false,dirty=false,timer=null,timerEnd=0;
+ const menuToggle=document.querySelector('#portalMenuToggle');
+ function setMenu(open,restoreFocus=false){
+  document.body.classList.toggle('portal-menu-open',open);
+  menuToggle.setAttribute('aria-expanded',String(open));
+  menuToggle.setAttribute('aria-label',open?'Fechar menu de navegação':'Abrir menu de navegação');
+  if(restoreFocus)menuToggle.focus();
+ }
+ menuToggle.onclick=()=>{if(!busy)setMenu(menuToggle.getAttribute('aria-expanded')!=='true');};
+ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&menuToggle.getAttribute('aria-expanded')==='true'){setMenu(false,true);}});
+ document.addEventListener('click',event=>{if(!nav.contains(event.target)&&!menuToggle.contains(event.target))setMenu(false);});
+ window.matchMedia('(max-width:850px)').addEventListener('change',()=>setMenu(false));
  const button=(label,attrs='',primary=false)=>'<button type="button" class="'+(primary?'primary':'ghost')+'" '+attrs+'>'+E(label)+'</button>';
  const heading=(title,lead='')=>'<div class="ey">Minha área LG</div><h1>'+E(title)+'</h1>'+(lead?'<p class="lead">'+E(lead)+'</p>':'');
  const empty=text=>'<div class="empty">'+E(text)+'</div>';
@@ -18,11 +29,11 @@
   if(busy)return;
   if(!routes.some(([key])=>key===next))next='home';
   if(!force&&dirty&&!window.confirm('Você tem informações não salvas. Deseja sair desta tela?'))return;
-  dirty=false;route=next;nav.classList.remove('more-open');const more=nav.querySelector('#portalMore');if(more){more.setAttribute('aria-expanded','false');more.classList.toggle('has-active',!['home','training','progress'].includes(next));}const current=++revision;if(timer){clearInterval(timer);timer=null;}
+  dirty=false;route=next;setMenu(false);const current=++revision;if(timer){clearInterval(timer);timer=null;}
   nav.querySelectorAll('[data-page]').forEach(b=>{b.setAttribute('aria-current',b.dataset.page===next?'page':'false');});
   content.innerHTML=heading(routes.find(([key])=>key===next)[1])+'<p role="status">Carregando...</p><div class="loading-line"></div>';
   history.replaceState(null,'','#'+next);
-  try{await screens[next](current);if(current===revision){wireRoutes();content.focus();}}
+  try{await screens[next](current);if(current===revision){wireRoutes();content.focus({preventScroll:true});window.scrollTo(0,0);}}
   catch(error){if(current===revision)errorPanel(error,()=>navigate(next,true));}
  }
  function anamnesisSaved(rev){
@@ -41,7 +52,7 @@
    event.preventDefault();if(busy||committed||!form.reportValidity())return;
    const values=Object.fromEntries(new FormData(form)),status=form.querySelector('[data-form-status]');
    let followUp;
-   const controls=[...form.querySelectorAll('input,textarea,select,button'),...nav.querySelectorAll('button'),document.querySelector('#logout')],disabled=controls.map(x=>x.disabled);
+   const controls=[...form.querySelectorAll('input,textarea,select,button'),...nav.querySelectorAll('button'),menuToggle,document.querySelector('#logout')],disabled=controls.map(x=>x.disabled);
    busy=true;controls.forEach(x=>x.disabled=true);form.setAttribute('aria-busy','true');status.className='muted';status.textContent='Salvando. Aguarde a confirmação...';
    try{const saved=await operation(values);committed=true;form.dataset.dirty='false';dirty=[...content.querySelectorAll('form')].some(f=>f.dataset.dirty==='true');status.textContent='Salvo com sucesso.';try{followUp=await after(saved);}catch{status.textContent='Salvo. Atualize esta área para conferir os dados.';}}
    catch(error){status.className='error';status.textContent=M.message(error);}
@@ -115,7 +126,7 @@
  async function guidance(rev){const rows=await api.guidance();if(rev!==revision)return;content.innerHTML=heading('Minhas orientações','Recomendações registradas pelo professor para seu acompanhamento.')+(rows.length?'<div class="list">'+rows.map(row=>'<article class="panel"><p class="small">'+D(row.created_at)+'</p><h2>'+E(row.title)+'</h2><div class="guidance-body">'+E(row.body)+'</div></article>').join('')+'</div>':empty('Seu professor ainda não registrou orientações para você.'));}
  async function myProfile(rev){const data=await api.profile();if(rev!==revision)return;profile=data;content.innerHTML=heading('Meu perfil','Seu cadastro e acesso LG.')+'<div class="panel"><p><strong>E-mail de acesso:</strong> '+E(data.email||'Não informado')+'</p><p class="small">Para corrigir o e-mail ou informações do acompanhamento, procure o professor.</p><p><strong>Objetivo:</strong> '+E(data.goal||'Não informado')+' · <strong>Início:</strong> '+D(data.start_date)+'</p><form id="profileForm"><div class="form-grid"><div class="field full"><label for="profileName">Nome completo</label><input id="profileName" name="full_name" maxlength="160" value="'+E(data.full_name)+'" required autocomplete="name"></div><div class="field"><label for="profilePhone">Telefone</label><input id="profilePhone" name="phone" maxlength="40" value="'+E(data.phone||'')+'" autocomplete="tel"></div><div class="field"><label for="profileBirth">Nascimento</label><input id="profileBirth" name="birth_date" type="date" min="1900-01-01" max="'+stateDate().slice(0,10)+'" value="'+E(data.birth_date||'')+'"></div><div class="field"><label for="profileSex">Sexo biológico</label><select id="profileSex" name="sex"><option value="">Não informado</option><option value="female" '+(data.sex==='female'?'selected':'')+'>Feminino</option><option value="male" '+(data.sex==='male'?'selected':'')+'>Masculino</option></select></div></div>'+formStatus+'<button type="submit" class="primary">Salvar meus dados</button></form></div><form id="passwordUpdate" class="panel" style="margin-top:20px"><h2>Alterar minha senha</h2><div class="form-grid"><div class="field"><label for="profilePassword">Nova senha</label><input id="profilePassword" name="password" type="password" minlength="8" maxlength="128" required autocomplete="new-password"></div><div class="field"><label for="profileConfirm">Confirmar senha</label><input id="profileConfirm" name="confirm_password" type="password" minlength="8" maxlength="128" required autocomplete="new-password"></div></div>'+formStatus+'<button type="submit" class="ghost">Salvar nova senha</button></form>';bindForm(content.querySelector('#profileForm'),values=>api.updateProfile(values),saved=>{profile={...profile,...saved};content.querySelector('#profileForm [data-form-status]').textContent='Seus dados foram atualizados.';});bindForm(content.querySelector('#passwordUpdate'),values=>api.password(values.password,values.confirm_password),()=>{const form=content.querySelector('#passwordUpdate');form.reset();form.querySelector('[data-form-status]').textContent='Senha alterada com sucesso.';});}
  const screens={home,training,history:sessions,assessments,progress,anamnesis,guidance,profile:myProfile};
- async function boot(){try{client=LG_AUTH.createClient();const access=await LG_AUTH.access(client);if(access.profile.role==='trainer')return location.replace('./admin.html');api=M.createApi(client,access.user.id);profile=await api.profile();nav.innerHTML=routes.map(([key,label])=>button(label,'data-page="'+key+'" aria-current="false"')).join('')+button('Mais','id="portalMore" aria-expanded="false" aria-label="Mais opções de navegação"');const more=nav.querySelector('#portalMore');more.onclick=()=>{const open=nav.classList.toggle('more-open');more.setAttribute('aria-expanded',String(open));};nav.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>navigate(b.dataset.page));await navigate(location.hash.slice(1)||'home',true);}catch(error){if(LG_AUTH.sessionExpired(error))return location.replace('./index.html');content.innerHTML=heading('Não foi possível abrir sua área.')+'<p class="error" role="status">'+E(LG_AUTH.message(error))+'</p>'+button('Tentar novamente','id="retryPortal"');at('#retryPortal',()=>location.reload());}}
+async function boot(){try{client=LG_AUTH.createClient();const access=await LG_AUTH.access(client);if(access.profile.role==='trainer')return location.replace('./admin.html');api=M.createApi(client,access.user.id);profile=await api.profile();nav.innerHTML=routes.map(([key,label])=>button(label,'data-page="'+key+'" aria-current="false"')).join('');nav.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>navigate(b.dataset.page));await navigate(location.hash.slice(1)||'home',true);}catch(error){if(LG_AUTH.sessionExpired(error))return location.replace('./index.html');content.innerHTML=heading('Não foi possível abrir sua área.')+'<p class="error" role="status">'+E(LG_AUTH.message(error))+'</p>'+button('Tentar novamente','id="retryPortal"');at('#retryPortal',()=>location.reload());}}
  document.querySelector('#logout').onclick=async event=>{if(busy)return;if(dirty&&!confirm('Sair sem salvar as informações desta tela?'))return;const b=event.currentTarget;b.disabled=true;try{const result=await LG_AUTH.deadline(()=>client.auth.signOut());if(result.error)throw result.error;content.textContent='';document.querySelector('#printArea').textContent='';location.replace('./index.html');}catch{b.disabled=false;content.insertAdjacentHTML('afterbegin','<p class="error" role="status">Não foi possível sair. Confira a conexão e tente novamente.</p>');}};
  window.addEventListener('beforeunload',event=>{if(dirty||busy){event.preventDefault();event.returnValue='';}});
  window.addEventListener('afterprint',()=>{document.querySelector('#printArea').textContent='';});

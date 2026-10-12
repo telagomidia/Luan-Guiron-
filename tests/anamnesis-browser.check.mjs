@@ -7,7 +7,7 @@ import {execFileSync} from 'node:child_process';
 const {chromium}=await import(process.env.PLAYWRIGHT_ENTRY||'playwright');
 const root=new URL('../',import.meta.url),read=f=>fs.readFileSync(new URL(f,root),'utf8');
 const output=process.env.MOBILE_SCREENSHOTS||'/tmp/mobile-layout-screenshots';fs.mkdirSync(output,{recursive:true});
-const browser=await chromium.launch({headless:true});
+const browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_EXECUTABLE?{executablePath:process.env.CHROMIUM_EXECUTABLE,args:['--no-sandbox','--disable-dev-shm-usage']}:{})});
 try{
  for(const width of [320,390,768,1440]){
   const context=await browser.newContext({viewport:{width,height:900}}),page=await context.newPage();
@@ -22,7 +22,7 @@ try{
    window.LG_AUTH={createClient:()=>({}),access:async()=>({user:{id:'qa'},profile}),sessionExpired:()=>false,message:()=> 'Falha QA'};
    window.LG_PORTAL={...LG_PORTAL,createApi:()=>api};
   });
-  await page.addScriptTag({content:read('portal-app.js')});await page.locator('[data-page="home"]').waitFor();if(width<=850)await page.locator('#portalMore').click();await page.locator('[data-page="anamnesis"]').click();await page.locator('[name="reviewed"]').check();
+  await page.addScriptTag({content:read('portal-app.js')});await page.locator('[data-page="home"]').waitFor({state:'attached'});if(width<=850)await page.locator('#portalMenuToggle').click();await page.locator('[data-page="anamnesis"]').click();await page.locator('[name="reviewed"]').check();
   await page.locator('#anamForm button[type="submit"]').click();await page.locator('[data-form-status].error').waitFor();assert.equal(await page.locator('.anam-saved').count(),0);assert.equal(await page.locator('[name="training_goal"]').inputValue(),'Objetivo sintético QA');
   await page.evaluate(()=>qa.fail=false);await page.locator('#anamForm button[type="submit"]').click();
   await page.waitForFunction(()=>typeof qa.confirmSave==='function');assert.equal(await page.locator('.anam-saved').count(),0,'No success before database confirmation');await page.evaluate(()=>qa.confirmSave());
