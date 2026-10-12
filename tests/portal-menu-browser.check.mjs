@@ -39,9 +39,9 @@ try{
    assert.ok((await page.locator('h1').boundingBox()).y<180,'No empty navigation gap');
    await toggle.focus();await page.keyboard.press('Enter');assert.equal(await toggle.getAttribute('aria-expanded'),'true');
    assert.equal(await nav.locator('button:visible').count(),8);await fits();
-   assert.equal(await nav.evaluate(e=>getComputedStyle(e).position),'static');
+   assert.equal(await nav.evaluate(e=>getComputedStyle(e).position),'fixed');
    const navBox=await nav.boundingBox(),mainBox=await page.locator('main').boundingBox();
-   assert.ok(navBox.y>=71&&mainBox.y>=navBox.y+navBox.height-1,'Menu below header without covering content');
+   assert.ok(Math.abs(navBox.y-72)<1&&mainBox.y>=72,'Menu anchored below header');
    if(width===390)await page.screenshot({path:output+'/portal-menu-open.png'});
    await page.keyboard.press('Escape');assert.equal(await nav.isVisible(),false);
    assert.equal(await toggle.evaluate(e=>e===document.activeElement),true);
@@ -53,7 +53,7 @@ try{
    page.once('dialog',dialog=>dialog.dismiss());
    await toggle.click();await page.locator('[data-page="home"]').click();
    assert.equal(await nav.isVisible(),true);assert.equal(await page.locator('#profileName').inputValue(),'Alteração não salva');
-   await page.locator('h1').click();assert.equal(await nav.isVisible(),false);
+   await page.mouse.click(width-8,400);assert.equal(await nav.isVisible(),false);
    page.once('dialog',dialog=>dialog.accept());await toggle.click();await page.locator('[data-page="home"]').click();
    await page.locator('.training-focus').waitFor();
    assert.equal(await page.evaluate(()=>scrollY),0,'Header remains reachable after navigation');
@@ -63,6 +63,25 @@ try{
    await page.waitForFunction(()=>document.querySelector('#portalMenuToggle').getAttribute('aria-expanded')==='false');
    await page.setViewportSize({width,height:844});await nav.waitFor({state:'hidden'});
   }else{assert.equal(await toggle.isVisible(),false);assert.equal(await nav.locator('button:visible').count(),8);}
+  await page.locator('#content').evaluate(e=>e.style.minHeight='2200px');
+  for(const y of [700,350]){
+   await page.evaluate(y=>window.scrollTo(0,y),y);
+   assert.equal(await page.evaluate(()=>scrollY),y);
+   assert.ok(Math.abs((await page.locator('body>header').boundingBox()).y)<1,'Header pinned while scrolling @'+width);
+  }
+  if(width<=850){
+   await toggle.click();
+   assert.equal(await page.evaluate(()=>scrollY),350,'Opening menu preserves reading position');
+   assert.ok(Math.abs((await nav.boundingBox()).y-72)<1,'Menu reachable from scrolled page');
+   assert.equal(await nav.locator('button:visible').count(),8);
+   if(width===390)await page.screenshot({path:output+'/portal-sticky-scrolled.png'});
+   await page.keyboard.press('Escape');assert.equal(await nav.isVisible(),false);
+   await page.setViewportSize({width,height:260});await toggle.click();
+   const shortMenu=await nav.boundingBox();assert.ok(shortMenu.y+shortMenu.height<=260,'Menu fits short viewport');
+   await nav.locator('[data-page="profile"]').scrollIntoViewIfNeeded();
+   const last=await nav.locator('[data-page="profile"]').boundingBox();assert.ok(last.y>=72&&last.y+last.height<=261,'Last option reachable in short viewport');
+  }
+  await page.emulateMedia({media:'print'});assert.equal(await page.locator('body>header').isVisible(),false);
   assert.deepEqual(errors,[]);await page.close();
  }
  console.log('PASS: portal top menu at seven widths, brand centering, keyboard/Escape, all options, focus, dirty form guard, outside click, resize, shadows and no overflow.');
