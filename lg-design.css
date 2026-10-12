@@ -118,7 +118,12 @@ body[data-lg-page="admin"] .priority-panel .row{border-width:0 0 1px;border-radi
 .onboarding-note p{margin:4px 0 0;font-size:14px}
 .companion-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .companion-grid h3{margin:0 0 12px}
-body[data-lg-page="portal"] #portalMore{display:none}
+body[data-lg-page="portal"] #portalMenuToggle{display:none}
+/* Subtle depth in the student workspace; no changes to printed reports. */
+body[data-lg-page="portal"] .panel,body[data-lg-page="portal"] .card,body[data-lg-page="portal"] .training-focus,body[data-lg-page="portal"] .list-row{box-shadow:0 2px 4px #24212b05,0 6px 18px #24212b08}
+body[data-lg-page="portal"] .primary{box-shadow:0 3px 8px #6524c726}
+body[data-lg-page="portal"] .ghost{box-shadow:0 2px 4px #24212b0a}
+body[data-lg-page="portal"] button:disabled{box-shadow:none}
 body[data-lg-page="cadastro"]{--p:#6524c7;--p2:#6524c7;--line:#dedbe3;--muted:#66616e}
 body[data-lg-page="cadastro"] h1{font-size:clamp(30px,5vw,42px);line-height:1.15;margin-top:32px;color:var(--lg-ink)}
 body[data-lg-page="cadastro"] .card{box-shadow:none;border-radius:12px;background:#fff}
@@ -127,28 +132,22 @@ body[data-lg-page="cadastro"] .steps{margin:10px 0 24px}
 body[data-lg-page="cadastro"] .step-label{font-size:13px;color:var(--lg-purple);font-weight:700;margin:24px 0 0}
 body[data-lg-page="senha"]{--purple:#6524c7;--line:#dedbe3}
 @media(max-width:850px){
+body[data-lg-page="portal"] header{display:grid;grid-template-columns:52px minmax(0,1fr) 52px;gap:8px;padding:0 12px;height:72px}
+body[data-lg-page="portal"] header .brand{justify-self:center;display:flex;gap:8px;min-width:0;font-size:clamp(12px,3.4vw,16px);white-space:nowrap}
+body[data-lg-page="portal"] header .brand img{width:32px;height:32px;object-fit:contain}
+body[data-lg-page="portal"] header .brand small{display:none}
+body[data-lg-page="portal"] #portalMenuToggle{display:flex;align-items:center;justify-content:center;width:44px;height:44px;padding:0}
+body[data-lg-page="portal"] #portalMenuToggle[aria-expanded="true"]{background:var(--lg-soft);color:var(--lg-purple);border-color:var(--lg-purple)}
+body[data-lg-page="portal"] #logout{padding:10px 6px;font-size:14px;min-width:0}
 body[data-lg-page="portal"] aside{padding:0;border:0}
-body[data-lg-page="portal"] main{padding-bottom:120px}
+body[data-lg-page="portal"] main{padding-bottom:48px}
 body[data-lg-page="portal"] .sidebar-note{display:none}
-body[data-lg-page="portal"] #studentNav{position:fixed;z-index:20;bottom:0;left:0;right:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:8px 12px max(8px,env(safe-area-inset-bottom));gap:4px;background:#fff;border-top:1px solid var(--lg-line);overflow:visible;box-shadow:0 -4px 18px #24212b08}
-body[data-lg-page="portal"] #studentNav button{display:none;justify-content:center;text-align:center;font-size:12px;padding:12px 5px;white-space:normal;border:0}
-body[data-lg-page="portal"] #studentNav [data-page="home"]{display:flex;grid-column:1;grid-row:2}
-body[data-lg-page="portal"] #studentNav [data-page="training"]{display:flex;grid-column:2;grid-row:2}
-body[data-lg-page="portal"] #studentNav [data-page="progress"]{display:flex;grid-column:3;grid-row:2}
-body[data-lg-page="portal"] #studentNav #portalMore{display:flex;grid-column:4;grid-row:2}
-body[data-lg-page="portal"] #portalMore.has-active,body[data-lg-page="portal"] #portalMore[aria-expanded="true"]{background:var(--lg-soft);color:var(--lg-purple)}
-body[data-lg-page="portal"] #studentNav.more-open{grid-template-rows:repeat(3,auto)}
-body[data-lg-page="portal"] #studentNav.more-open button{display:flex}
-body[data-lg-page="portal"] #studentNav.more-open [data-page="home"],body[data-lg-page="portal"] #studentNav.more-open [data-page="training"],body[data-lg-page="portal"] #studentNav.more-open [data-page="progress"],body[data-lg-page="portal"] #studentNav.more-open #portalMore{grid-row:3}
-body[data-lg-page="portal"] #studentNav.more-open [data-page="history"]{grid-column:1/3;grid-row:1}
-body[data-lg-page="portal"] #studentNav.more-open [data-page="assessments"]{grid-column:3/5;grid-row:1}
-body[data-lg-page="portal"] #studentNav.more-open [data-page="anamnesis"]{grid-column:1;grid-row:2}
-body[data-lg-page="portal"] #studentNav.more-open [data-page="guidance"]{grid-column:2/4;grid-row:2}
-body[data-lg-page="portal"] #studentNav.more-open [data-page="profile"]{grid-column:4;grid-row:2}
-body[data-lg-page="portal"] .layout{max-width:none}
+body[data-lg-page="portal"] #studentNav{display:none;position:static;overflow:visible}
+body[data-lg-page="portal"].portal-menu-open #studentNav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:12px;background:#fff;border-bottom:1px solid var(--lg-line);box-shadow:0 4px 12px #24212b0a}
+body[data-lg-page="portal"] #studentNav button{display:block;text-align:left;white-space:normal;padding:12px;font-size:14px;border:1px solid var(--lg-line)}
+body[data-lg-page="portal"] #studentNav button[aria-current="page"]{border-color:var(--lg-purple)}
+body[data-lg-page="portal"] .layout{max-width:none;grid-template-rows:auto 1fr}
 }
-@media(max-width:800px){
-body[data-lg-page="home"] header{height:68px}
 body[data-lg-page="home"] .hero{grid-template-columns:1fr;min-height:0}
 body[data-lg-page="home"] .hero-copy{padding:44px 0 36px;gap:24px}
 body[data-lg-page="home"] .hero h1{font-size:clamp(42px,10.6vw,76px);line-height:1;letter-spacing:-.06em}
@@ -179,6 +178,7 @@ body[data-lg-page="home"] .contact{padding-top:48px}
 body[data-lg-page="home"] .contact-grid{gap:28px}
 body[data-lg-page="admin"] .shell>aside{padding:8px 12px;border-bottom:1px solid var(--lg-line)}
 body[data-lg-page="admin"] .shell>main,body[data-lg-page="portal"] main{padding:28px 16px 100px}
+body[data-lg-page="portal"] main{padding-bottom:48px}
 body[data-lg-page="admin"] .nav button{padding:12px}
 .dashboard-heading{align-items:flex-start;flex-wrap:wrap}
 }
