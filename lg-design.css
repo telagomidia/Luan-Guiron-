@@ -79,6 +79,8 @@ body[data-lg-page="home"] .login-box label{font-size:13px;text-transform:none;le
 /* Shared workspaces. Variables also reach the existing dynamically loaded modules. */
 body[data-lg-page="admin"],body[data-lg-page="portal"]{--bg:#f7f6f8;--panel:#fff;--paper:#24212b;--ink:#24212b;--muted:#66616e;--line:#dedbe3;--p:#6524c7;--purple:#6524c7;--soft:#f0eafa;--dark:#30203f;--danger:#a32828}
 body[data-lg-page="admin"] header,body[data-lg-page="portal"] header{height:72px;background:#fff;border-bottom:1px solid var(--lg-line);color:var(--lg-ink)}
+body[data-lg-page="portal"]>header{position:sticky;top:0;z-index:25;box-shadow:0 2px 8px #24212b08}
+body[data-lg-page="portal"] main :is(button,input,select,textarea,a,[tabindex]),body[data-lg-page="portal"] #content{scroll-margin-top:88px}
 body[data-lg-page="admin"] aside,body[data-lg-page="portal"] aside{background:#fff;padding:24px 16px}
 body[data-lg-page="admin"] .shell,body[data-lg-page="portal"] .layout{min-height:calc(100vh - 72px)}
 body[data-lg-page="admin"] .nav button,body[data-lg-page="portal"] nav button{font-size:14px;border-radius:8px;line-height:1.4;min-height:44px}
@@ -143,7 +145,7 @@ body[data-lg-page="portal"] aside{padding:0;border:0}
 body[data-lg-page="portal"] main{padding-bottom:48px}
 body[data-lg-page="portal"] .sidebar-note{display:none}
 body[data-lg-page="portal"] #studentNav{display:none;position:static;overflow:visible}
-body[data-lg-page="portal"].portal-menu-open #studentNav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:12px;background:#fff;border-bottom:1px solid var(--lg-line);box-shadow:0 4px 12px #24212b0a}
+body[data-lg-page="portal"].portal-menu-open #studentNav{display:grid;position:fixed;top:72px;left:0;right:0;z-index:24;max-height:calc(100vh - 72px);max-height:calc(100dvh - 72px);overflow-y:auto;overscroll-behavior:contain;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:12px;background:#fff;border-bottom:1px solid var(--lg-line);box-shadow:0 4px 12px #24212b0a}
 body[data-lg-page="portal"] #studentNav button{display:block;text-align:left;white-space:normal;padding:12px;font-size:14px;border:1px solid var(--lg-line)}
 body[data-lg-page="portal"] #studentNav button[aria-current="page"]{border-color:var(--lg-purple)}
 body[data-lg-page="portal"] .layout{max-width:none;grid-template-rows:auto 1fr}

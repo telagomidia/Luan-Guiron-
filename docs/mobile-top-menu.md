@@ -1,5 +1,20 @@
 # Menu superior da área do aluno — issue #35
 
+## Atualização — issue #37
+
+Cabeçalho sticky no topo da área do aluno, em celular e computador. No celular,
+o painel de navegação passa a abrir sobre o conteúdo, imediatamente abaixo do
+cabeçalho, preservando a posição de leitura. Altura limitada à área visível,
+com rolagem interna em telas baixas. Escape e clique fora continuam fechando.
+Os controles do conteúdo têm margem de rolagem para não ficarem sob o cabeçalho.
+Impressão continua sem cabeçalho. Identidade, densidade, tipografia e componentes
+LG preservados; nenhuma estética externa ou dependência adicionada.
+QA inclui rolagem nas duas direções em sete larguras, abertura a partir do meio
+da página, viewport de 260 px de altura e ausência de cabeçalho na impressão.
+
+O plano abaixo registra a primeira versão; a abertura no fluxo descrita no item
+3 foi substituída pelo painel ancorado desta atualização.
+
 ## Objetivo e direção
 
 Aplicar o feedback de Lucas sem alterar a identidade LG: roxo, logo oficial,
