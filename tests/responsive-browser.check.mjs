@@ -18,7 +18,7 @@ function fixture(){return '<div class="student-hub-head"><div><h1>ALUNO DE TESTE
 const browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_EXECUTABLE?{executablePath:process.env.CHROMIUM_EXECUTABLE,args:['--no-sandbox','--disable-dev-shm-usage']}: {})});
 let count=0;
 try{
- for(const width of [320,390,430,768,1440]){
+ for(const width of [320,390,430,768,1024,1366,1440,1920]){
   const context=await browser.newContext({viewport:{width,height:900},deviceScaleFactor:1});const page=await context.newPage();
   await page.route('**/*',route=>{const url=new URL(route.request().url());return route.fulfill({status:200,contentType:url.pathname.endsWith('.css')?'text/css':'image/svg+xml',body:url.pathname.endsWith('/lg-design.css')?read('lg-design.css'):url.pathname.endsWith('/responsive.css')?read('responsive.css'):url.pathname.endsWith('/portal.css')?read('portal.css'):url.pathname.endsWith('/anamnesis.css')?read('anamnesis.css'):'<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44"><rect width="44" height="44" fill="white"/></svg>'});});
   async function fits(label){
@@ -40,6 +40,21 @@ try{
    }
    await page.addScriptTag({content:read('responsive.js')});
    await fits(name);
+   if(name==='index'){
+    if(width===390||width===1366)await page.screenshot({path:path.join(screenshots,'home-'+width+'.png'),fullPage:true});
+    const hero=await page.locator('.hero').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length);
+    assert.equal(hero,width>800?2:1,'Hero columns must match viewport @'+width);
+    if(width>800){
+     const copy=await page.locator('.hero-copy').boundingBox(),side=await page.locator('.hero-side').boundingBox();
+     assert.ok(side.x>=copy.x+copy.width-1&&Math.abs(copy.y-side.y)<2,'Desktop hero panels side by side');
+     const sectionColumns=await page.locator('.section-head').first().evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length);
+     assert.equal(sectionColumns,2,'Desktop section number and heading in separate columns');
+    }
+   }
+   if(width>850&&(name==='portal'||name==='admin')){
+    const main=await page.locator('main').evaluate(el=>({padding:parseFloat(getComputedStyle(el).paddingLeft),x:el.getBoundingClientRect().x}));
+    assert.ok(main.padding>=32&&main.x>=200,'Desktop workspace keeps sidebar and generous padding');
+   }
    if(name==='portal'||name==='admin'){
     await page.addScriptTag({content:read('anamnesis-schema.js')});
     await page.evaluate(name=>{
@@ -70,5 +85,5 @@ try{
   }
   await context.close();
  }
- console.log('PASS: '+count+' Chromium layout checks at 320/390/430/768/1440px; six pages, all onboarding steps, login/profile dialogs, late-loaded profile CSS and contained tables.');
+ console.log('PASS: '+count+' Chromium layout checks at eight mobile/desktop widths (320–1920px); desktop columns and spacing, six pages, onboarding steps, dialogs, late-loaded profile CSS and contained tables.');
 }finally{await browser.close();}
