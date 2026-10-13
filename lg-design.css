@@ -150,6 +150,7 @@ body[data-lg-page="portal"] #studentNav button{display:block;text-align:left;whi
 body[data-lg-page="portal"] #studentNav button[aria-current="page"]{border-color:var(--lg-purple)}
 body[data-lg-page="portal"] .layout{max-width:none;grid-template-rows:auto 1fr}
 }
+@media(max-width:800px){
 body[data-lg-page="home"] .hero{grid-template-columns:1fr;min-height:0}
 body[data-lg-page="home"] .hero-copy{padding:44px 0 36px;gap:24px}
 body[data-lg-page="home"] .hero h1{font-size:clamp(42px,10.6vw,76px);line-height:1;letter-spacing:-.06em}
