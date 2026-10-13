@@ -13,7 +13,7 @@ w.document.write(read('portal.html').replace(/<script\b[\s\S]*?<\/script>/g,''))
 const clock=saveClock(w);
 w.confirm=()=>true;w.HTMLElement.prototype.scrollIntoView=function(){};
 w.LG_AUTH={createClient:()=>client,access:async()=>({user:{id:profile.id},profile}),deadline:fn=>fn(),sessionExpired:()=>false,message:()=> 'Erro QA'};
-for(const f of ['anamnesis-schema.js','portal-model.js','portal-views.js','portal-app.js'])w.eval(read(f));
+for(const f of ['workout-journal.js','anamnesis-schema.js','portal-model.js','portal-views.js','portal-app.js'])w.eval(read(f));
 const settle=async()=>{for(let i=0;i<10;i++)await new Promise(r=>setTimeout(r,0));};
 const el=s=>{const n=w.document.querySelector(s);assert.ok(n,'Missing '+s);return n;};
 await settle();assert.equal(w.document.querySelectorAll('.anam-section').length,7);assert.equal(el('[name="full_name"]').value,profile.full_name);

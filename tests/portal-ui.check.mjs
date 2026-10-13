@@ -17,9 +17,9 @@ const exercise={id:'exercise',exercise_name:'Agachamento',target_sets:2,rep_min:
 const workout={id:'workout',name:'Treino A',exercises:[exercise]};
 const assessment={id:'assessment',assessed_at:'2026-10-08',weight_kg:70,body_fat_pct:20,bioimpedance_pdf_path:'own/report.pdf'};
 let recordCalls=0,saveAnamCalls=0,failRecord=true,pendingResolve;
-const api={profile:async()=>profile,plans:async()=>[plan],plan:async()=>({plan,workouts:[workout]}),sessions:async()=>[],assessments:async()=>[assessment,{...assessment,id:'previous',assessed_at:'2026-09-01',weight_kg:71}],anamnesis:async()=>null,photos:async()=>[{id:'p1',photo_date:'2026-10-08',view:'front',storage_path:'own/now.png'},{id:'p2',photo_date:'2026-09-01',view:'front',storage_path:'own/before.png'}],guidance:async()=>[{title:'Orientação QA',body:'<script>unsafe</script>',created_at:'2026-10-08'}],assessment:async()=>({assessment,circ:null,skin:null,strength:[],vo2:[],stages:[]}),signed:async()=> 'https://storage.test/private?token=qa',record:async()=>{recordCalls++;if(failRecord)throw{code:'request_timeout'};return new Promise(r=>pendingResolve=r);},saveAnam:async()=>{saveAnamCalls++;return{id:'anam'};},updateProfile:async values=>({id:'own',...values}),password:async()=>{}};
+const api={profile:async()=>profile,plans:async()=>[plan],plan:async()=>({plan,workouts:[workout]}),sessionsMonth:async()=>[],latestWorkout:async()=>null,sessions:async()=>[],assessments:async()=>[assessment,{...assessment,id:'previous',assessed_at:'2026-09-01',weight_kg:71}],anamnesis:async()=>null,photos:async()=>[{id:'p1',photo_date:'2026-10-08',view:'front',storage_path:'own/now.png'},{id:'p2',photo_date:'2026-09-01',view:'front',storage_path:'own/before.png'}],guidance:async()=>[{title:'Orientação QA',body:'<script>unsafe</script>',created_at:'2026-10-08'}],assessment:async()=>({assessment,circ:null,skin:null,strength:[],vo2:[],stages:[]}),signed:async()=> 'https://storage.test/private?token=qa',record:async()=>{recordCalls++;if(failRecord)throw{code:'request_timeout'};return new Promise(r=>pendingResolve=r);},saveAnam:async()=>{saveAnamCalls++;return{id:'anam'};},updateProfile:async values=>({id:'own',...values}),password:async()=>{}};
 window.LG_AUTH={createClient:()=>({}),access:async()=>({user:{id:'own'},profile}),sessionExpired:()=>false,message:()=> 'Falha',deadline:fn=>fn()};
-for(const f of ['anamnesis-schema.js','portal-model.js','portal-views.js'])window.eval(fs.readFileSync(root+f,'utf8'));
+for(const f of ['workout-journal.js','anamnesis-schema.js','portal-model.js','portal-views.js'])window.eval(fs.readFileSync(root+f,'utf8'));
 window.LG_PORTAL={...window.LG_PORTAL,createApi:()=>api};
 window.eval(fs.readFileSync(root+'portal-app.js','utf8'));
 const doc=window.document,one=s=>{const node=doc.querySelector(s);assert.ok(node,'Missing '+s);return node;};
@@ -38,9 +38,9 @@ await click('#portalMenuToggle');await route('guidance');assert.equal(one('#port
 assert.equal(one('[data-page="guidance"]').getAttribute('aria-current'),'page');
 await route('home');
 
-await route('training');await click('[data-plan]');assert.match(one('#content').textContent,/Agachamento/);assert.match(one('#content').textContent,/RIR 0/);
+await route('training');await click('[data-plan]');await click('[data-workout]');assert.match(one('#content').textContent,/Agachamento/);assert.match(one('#content').textContent,/RIR 0/);
 await click('#printTraining');assert.match(one('#printArea').textContent,/Agachamento/);
-await click('#recordWorkout');fill('[data-reps]','10');one('[data-completed]').checked=true;
+fill('[data-reps]','10');one('[data-completed]').checked=true;
 await click('#recordSession button[type="submit"]');assert.equal(recordCalls,1);assert.match(one('[data-form-status]').textContent,/confirmar/);assert.equal(one('[data-reps]').value,'10');assert.equal(one('#recordSession button[type="submit"]').disabled,false);
 failRecord=false;one('#recordSession button[type="submit"]').click();await settle();one('#recordSession').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true}));await settle();assert.equal(recordCalls,2);assert.equal(one('[data-page="home"]').disabled,true);pendingResolve({id:'session'});await settle();assert.match(one('#recordSession').textContent,/Sessão registrada/);
 await route('history');assert.match(one('#content').textContent,/ainda não registrou/);

@@ -22,9 +22,9 @@ try{
   await page.evaluate(()=>{
    const profile={id:'qa',role:'student',full_name:'Lucas Teste',email:'qa@example.invalid'};
    window.LG_AUTH={createClient:()=>({}),access:async()=>({user:{id:'qa'},profile}),sessionExpired:()=>false,message:()=> 'Falha'};
-   window.qaApi={profile:async()=>profile,plans:async()=>[{id:'plan',active:true,name:'Bloco inicial — adaptação técnica, hipertrofia e recomposição corporal',goal:'Hipertrofia com ênfase em peito, ombros, costas e braços.'}],sessions:async()=>[],assessments:async()=>[],anamnesis:async()=>null,guidance:async()=>[]};
+   window.qaApi={profile:async()=>profile,plans:async()=>[{id:'plan',active:true,name:'Bloco inicial — adaptação técnica, hipertrofia e recomposição corporal',goal:'Hipertrofia com ênfase em peito, ombros, costas e braços.'}],sessionsMonth:async()=>[],latestWorkout:async()=>null,sessions:async()=>[],assessments:async()=>[],anamnesis:async()=>null,guidance:async()=>[]};
   });
-  for(const f of ['anamnesis-schema.js','portal-model.js','portal-views.js'])await page.addScriptTag({content:read(f).toString()});
+  for(const f of ['workout-journal.js','anamnesis-schema.js','portal-model.js','portal-views.js'])await page.addScriptTag({content:read(f).toString()});
   await page.evaluate(()=>window.LG_PORTAL={...LG_PORTAL,createApi:()=>qaApi});
   await page.addScriptTag({content:read('portal-app.js').toString()});
   await page.locator('.training-focus').waitFor();
