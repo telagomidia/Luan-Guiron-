@@ -14,11 +14,11 @@ try{
   await page.route('**/*',route=>{const url=new URL(route.request().url()),file=url.pathname.split('/').pop();return route.fulfill({contentType:file.endsWith('.html')?'text/html':file.endsWith('.css')?'text/css':'image/webp',body:file.endsWith('.html')?'<!doctype html><html><body></body></html>':file.endsWith('.css')?read(file):fs.readFileSync(new URL('public/logo-lg.webp',root))});});
   await page.goto('http://qa.test/portal.html');
   await page.setContent(read('portal.html').replace(/<script\b[\s\S]*?<\/script>/g,'').replace('<head>','<head><base href="http://qa.test/">'),{waitUntil:'load'});
-  for(const file of ['anamnesis-schema.js','portal-model.js','portal-views.js'])await page.addScriptTag({content:read(file)});
+  for(const file of ['workout-journal.js','anamnesis-schema.js','portal-model.js','portal-views.js'])await page.addScriptTag({content:read(file)});
   await page.evaluate(()=>{
    const profile={id:'qa',full_name:'Aluno sintético QA',role:'student',active:true};
    window.qa={writes:0,fail:true,savedAt:0};
-   const api={profile:async()=>profile,plans:async()=>[],sessions:async()=>[],assessments:async()=>[],anamnesis:async()=>({id:'qa-anam',student_id:'qa',training_goal:'Objetivo sintético QA',parq_answers:Object.fromEntries(Array.from({length:7},(_,i)=>['q'+(i+1),{answer:'no'}]))}),saveAnam:async()=>{qa.writes++;await new Promise(r=>setTimeout(r,150));if(qa.fail)throw new Error('Falha QA');await new Promise(resolve=>qa.confirmSave=resolve);qa.savedAt=performance.now();return{id:'qa-anam',student_id:'qa'};}};
+   const api={profile:async()=>profile,plans:async()=>[],sessionsMonth:async()=>[],latestWorkout:async()=>null,sessions:async()=>[],assessments:async()=>[],anamnesis:async()=>({id:'qa-anam',student_id:'qa',training_goal:'Objetivo sintético QA',parq_answers:Object.fromEntries(Array.from({length:7},(_,i)=>['q'+(i+1),{answer:'no'}]))}),saveAnam:async()=>{qa.writes++;await new Promise(r=>setTimeout(r,150));if(qa.fail)throw new Error('Falha QA');await new Promise(resolve=>qa.confirmSave=resolve);qa.savedAt=performance.now();return{id:'qa-anam',student_id:'qa'};}};
    window.LG_AUTH={createClient:()=>({}),access:async()=>({user:{id:'qa'},profile}),sessionExpired:()=>false,message:()=> 'Falha QA'};
    window.LG_PORTAL={...LG_PORTAL,createApi:()=>api};
   });

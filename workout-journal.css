@@ -1,0 +1,32 @@
+@media screen{
+.journal-calendar-panel{margin:24px 0}
+.journal-month{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:12px 0}
+.journal-month h3{margin:0;text-transform:capitalize;font-size:17px}
+.journal-calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;max-width:560px}
+.journal-weekday{text-align:center;font-size:11px;color:#66616e;padding:6px 0}
+.journal-day{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;min-height:44px;border:1px solid #dedbe3;border-radius:7px;background:#fff;color:#24212b;font-size:14px;cursor:pointer}
+.journal-day span{font-size:11px;line-height:1;color:#6524c7}
+.journal-day.has-session{background:#f0eafa;font-weight:700}
+.journal-day[aria-current="date"]{border-color:#6524c7}
+.journal-day[aria-pressed="true"]{outline:2px solid #6524c7;outline-offset:0}
+.journal-exercise{padding:16px 0;border-bottom:1px solid #dedbe3}
+.journal-exercise h3{margin:0 0 12px}
+.journal-exercise:last-child{border-bottom:0}
+.journal-choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px;margin:20px 0}
+.journal-choice{padding:20px;border:1px solid #dedbe3;border-radius:10px;background:#fff}
+.journal-choice.suggested{border-color:#6524c7;background:#faf7ff}
+.journal-choice h2{margin:10px 0}
+.journal-choice button{width:100%;margin-top:12px}
+body[data-lg-page="portal"] #recordSession{margin-top:20px}
+body[data-lg-page="portal"] #workoutContent,body[data-lg-page="portal"] #sessionFormBox{scroll-margin-top:88px}
+body[data-lg-page="portal"] #recordSession .exercise{padding:20px 0}
+body[data-lg-page="portal"] #recordSession .exercise:first-of-type{padding-top:8px}
+body[data-lg-page="portal"] #recordSession textarea{margin-top:8px}
+.journal-notes{display:block;margin-top:16px;font-size:13px;font-weight:bold}
+.journal-calendar-panel .list-row{margin-top:10px}
+.journal-details .table-wrap{max-width:100%;overflow:auto}
+.journal-details table{width:100%;border-collapse:collapse}
+.journal-details td,.journal-details th{padding:10px;text-align:left;border-bottom:1px solid #dedbe3}
+.journal-details .prescription-note{white-space:pre-wrap;overflow-wrap:anywhere}
+@media(max-width:560px){body[data-lg-page="portal"] .journal-calendar-panel{padding:12px}.journal-details td,.journal-details th{padding:8px 6px}}
+}

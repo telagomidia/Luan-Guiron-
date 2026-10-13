@@ -28,6 +28,7 @@ jobs:
           node "$RUNNER_TEMP/mobile-ui/node_modules/playwright/cli.js" install --with-deps chromium
           PLAYWRIGHT_ENTRY="$RUNNER_TEMP/mobile-ui/node_modules/playwright/index.mjs" MOBILE_SCREENSHOTS="$RUNNER_TEMP/mobile-layout-screenshots" node tests/responsive-browser.check.mjs
           PLAYWRIGHT_ENTRY="$RUNNER_TEMP/mobile-ui/node_modules/playwright/index.mjs" MOBILE_SCREENSHOTS="$RUNNER_TEMP/mobile-layout-screenshots" node tests/portal-menu-browser.check.mjs
+          PLAYWRIGHT_ENTRY="$RUNNER_TEMP/mobile-ui/node_modules/playwright/index.mjs" MOBILE_SCREENSHOTS="$RUNNER_TEMP/mobile-layout-screenshots" node tests/workout-journal-browser.check.mjs
           PLAYWRIGHT_ENTRY="$RUNNER_TEMP/mobile-ui/node_modules/playwright/index.mjs" node tests/backup-browser.check.mjs
           PLAYWRIGHT_ENTRY="$RUNNER_TEMP/mobile-ui/node_modules/playwright/index.mjs" node tests/onboarding-browser.check.mjs
           sudo apt-get update -qq
