@@ -13,7 +13,7 @@
    holder.querySelectorAll('[data-day]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.day===selected)));
    const target=holder.querySelector('#trainerJournalDay');if(!target)return;
    const rows=monthRows.filter(s=>LG_JOURNAL.dayKey(s.performed_at)===selected);
-   target.innerHTML=selected?'<h3>'+E(dateLabel(selected))+'</h3>'+(rows.length?'<div class="list">'+rows.map(s=>'<article class="row"><div><strong>'+E(LG_JOURNAL.name(s))+'</strong><p class="muted">'+E(new Date(s.performed_at).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}))+' · '+E(LG_JOURNAL.planName(s))+'</p></div><button type="button" class="ghost" data-journal-session="'+E(s.id)+'">Ver cargas e observações</button></article>').join('')+'</div>':'<p class="muted">Nenhum treino registrado neste dia.</p>':'<p class="muted">Selecione um dia do calendário para consultar o treino.</p>';
+   target.innerHTML=selected?'<h3>'+E(dateLabel(selected))+'</h3>'+(rows.length?'<div class="list">'+rows.map(s=>'<article class="row"><div><strong>'+E(LG_JOURNAL.name(s))+'</strong><p class="muted">'+E(new Date(s.performed_at).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}))+' · '+E(LG_JOURNAL.planName(s))+'</p></div><button type="button" class="ghost" data-journal-session="'+E(s.id)+'">Ver cargas e observações</button></article>').join('')+'</div>':'<p class="muted">Nenhum treino registrado neste dia.</p>'):'<p class="muted">Selecione um dia do calendário para consultar o treino.</p>';
    target.querySelectorAll('[data-journal-session]').forEach(b=>b.onclick=()=>detail(b.dataset.journalSession));
   }
   function paint(){
