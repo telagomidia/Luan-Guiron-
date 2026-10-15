@@ -77,6 +77,9 @@ try{
    const client={from(table){let id;return {select(){return this;},eq(key,value){if(key==='student_id'&&value!=='own')throw Error('wrong owner');if(key==='id'||key==='session_id')id=value;return this;},gte(){return this;},lt(){return this;},order(){return this;},range(){return this;},single(){return this;},then(resolve){return Promise.resolve({data:table==='exercise_sets'?qa.sets[id]:id?qa.sessions.find(s=>s.id===id):qa.sessions}).then(resolve);}};}};
    LG_TRAINER_JOURNAL.mount(document.querySelector('#teacherJournal'),client,'own');
   });
+  await page.locator('#teacherJournal .journal-calendar').waitFor();
+  assert.equal(await page.locator('#teacherJournal .has-session').count(),1);
+  await page.locator('#teacherJournal [data-day].has-session').click();
   await page.locator('[data-journal-session]').first().click();await page.locator('#journalBack').waitFor();
   assert.match(await page.locator('#teacherJournal').innerText(),/Última série com ajuda/);assert.equal(await page.locator('#teacherJournal tbody tr').count(),3);
   assert.deepEqual(errors,[]);await context.close();
