@@ -1,9 +1,11 @@
 export function passwordLinkHandler({ caller, admin, now = Date.now }) {
-  const origin = 'https://telagomidia.github.io';
-  const headers = { 'Access-Control-Allow-Origin': origin, 'Access-Control-Allow-Headers': 'authorization, apikey, content-type, x-client-info', 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Content-Type': 'application/json', 'Cache-Control': 'no-store' };
-  const reply = (body, status = 200) => new Response(JSON.stringify(body), { status, headers });
+  const canonicalOrigin = 'https://luanguiron.com.br';
+  const allowedOrigins = new Set([canonicalOrigin, 'https://telagomidia.github.io']);
   return async request => {
-    if (request.headers.get('Origin') && request.headers.get('Origin') !== origin) return reply({ error: 'Origem não permitida.' }, 403);
+    const requestOrigin = request.headers.get('Origin');
+    const headers = { 'Access-Control-Allow-Origin': allowedOrigins.has(requestOrigin) ? requestOrigin : canonicalOrigin, 'Access-Control-Allow-Headers': 'authorization, apikey, content-type, x-client-info', 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'Vary': 'Origin' };
+    const reply = (body, status = 200) => new Response(JSON.stringify(body), { status, headers });
+    if (requestOrigin && !allowedOrigins.has(requestOrigin)) return reply({ error: 'Origem não permitida.' }, 403);
     if (request.method === 'OPTIONS') return new Response('ok', { headers });
     if (request.method !== 'POST') return reply({ error: 'Use POST.' }, 405);
     try {
@@ -25,7 +27,7 @@ export function passwordLinkHandler({ caller, admin, now = Date.now }) {
       const generated = await admin.auth.admin.generateLink({ type: 'recovery', email: account.data.user.email });
       const hash = generated.data?.properties?.hashed_token;
       if (generated.error || !hash || generated.data?.user?.id !== body.student_id) return reply({ error: 'Não foi possível gerar o link. Tente novamente.' }, 502);
-      const url = new URL('/Luan-Guiron-/senha.html', origin);
+      const url = new URL('/senha', canonicalOrigin);
       url.hash = new URLSearchParams({ token_hash: hash }).toString();
       return reply({ url: url.href });
     } catch { return reply({ error: 'Não foi possível concluir. Confira a conexão e tente novamente.' }, 500); }

@@ -11,14 +11,17 @@ function load(href){
 
 test('custom domain extensionless admin resolves signup at site root',()=>{
   const {urls,listeners}=load('https://luanguiron.com.br/admin');
-  assert.equal(urls.signup(),'https://luanguiron.com.br/cadastro.html');
+  assert.equal(urls.signup(),'https://luanguiron.com.br/cadastro');
+  assert.equal(urls.password(),'https://luanguiron.com.br/senha');
+  assert.equal(urls.login(),'https://luanguiron.com.br/');
+  assert.equal(urls.portal(),'https://luanguiron.com.br/portal');
   assert.equal(urls.isAdmin(),true);
   assert.equal(listeners.some(([name])=>name==='load'),true);
 });
 
-test('GitHub Pages keeps repository prefix in signup URL',()=>{
+test('GitHub Pages panel still shares the canonical custom domain',()=>{
   const {urls,listeners}=load('https://telagomidia.github.io/Luan-Guiron-/admin.html');
-  assert.equal(urls.signup(),'https://telagomidia.github.io/Luan-Guiron-/cadastro.html');
+  assert.equal(urls.signup(),'https://luanguiron.com.br/cadastro');
   assert.equal(urls.isAdmin(),true);
   assert.equal(listeners.some(([name])=>name==='load'),true);
 });

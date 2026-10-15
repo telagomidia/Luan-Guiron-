@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const signupUrl = () => new URL('./cadastro.html', location.href).href;
+  const signupUrl = () => LG_URLS.signup();
   window.copyStudentSignupLink = async function() {
     try { await navigator.clipboard.writeText(signupUrl()); toast('Link de cadastro copiado'); }
     catch { toast('Não foi possível copiar. Abra cadastro.html pelo endereço do site.'); }
@@ -26,7 +26,7 @@
           throw new Error(reason?.error || 'Não foi possível gerar. Confira a sessão e a conexão.');
         }
         const url = new URL(result.data?.url || '');
-        const expected = new URL('./senha.html', location.href);
+        const expected = new URL(LG_URLS.password());
         if (url.origin !== expected.origin || url.pathname !== expected.pathname || !new URLSearchParams(url.hash.slice(1)).get('token_hash')) throw new Error('O serviço não confirmou um link válido.');
         // Do not update a reused modal if the teacher closed this one while waiting.
         if (!modal.open || form.querySelector('#studentPasswordUrl') !== output) return;
