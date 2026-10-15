@@ -1,8 +1,9 @@
 export function studentProfileHandler({ caller, admin }) {
- const headers={'Access-Control-Allow-Origin':'https://telagomidia.github.io','Access-Control-Allow-Headers':'authorization,apikey,content-type,x-client-info','Access-Control-Allow-Methods':'POST,OPTIONS','Content-Type':'application/json','Cache-Control':'no-store'};
- const reply=(value,status=200)=>new Response(JSON.stringify(value),{status,headers});
+ const canonicalOrigin='https://luanguiron.com.br',allowedOrigins=new Set([canonicalOrigin,'https://telagomidia.github.io']);
  return async request=>{
-  if(request.headers.get('Origin')&&request.headers.get('Origin')!=='https://telagomidia.github.io')return reply({error:'Origem não permitida.'},403);
+  const requestOrigin=request.headers.get('Origin'),headers={'Access-Control-Allow-Origin':allowedOrigins.has(requestOrigin)?requestOrigin:canonicalOrigin,'Access-Control-Allow-Headers':'authorization,apikey,content-type,x-client-info','Access-Control-Allow-Methods':'POST,OPTIONS','Content-Type':'application/json','Cache-Control':'no-store','Vary':'Origin'};
+  const reply=(value,status=200)=>new Response(JSON.stringify(value),{status,headers});
+  if(requestOrigin&&!allowedOrigins.has(requestOrigin))return reply({error:'Origem não permitida.'},403);
   if(request.method==='OPTIONS')return new Response('ok',{headers});
   if(request.method!=='POST')return reply({error:'Use POST.'},405);
   try{
