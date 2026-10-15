@@ -43,3 +43,19 @@ test('new save uses v2 with notes and validates before any RPC',async()=>{
  assert.equal(payload.p_exercise_notes.e,'note');assert.equal(payload.p_sets[0].load_kg,20);assert.equal(payload.p_student_id,undefined);
  await assert.rejects(()=>api.record('s','w',new Date().toISOString(),'',rows,{e:'x'.repeat(2001)}));assert.equal(called,1);
 });
+
+test('trainer panel exposes the selected student workout calendar',()=>{
+ const admin=fs.readFileSync(__dirname+'/../admin.html','utf8');
+ assert.match(admin,/data-student-history/);
+ assert.match(admin,/function openStudentJournal\(studentId\)/);
+ assert.match(admin,/LG_TRAINER_JOURNAL\.mount\(holder,sb,studentId\)/);
+});
+test('trainer history scopes month and detail queries before rendering loads and notes',()=>{
+ const source=fs.readFileSync(__dirname+'/../trainer-journal.js','utf8');
+ assert.match(source,/\.eq\('student_id',studentId\)\.gte\('performed_at'/);
+ assert.match(source,/\.eq\('student_id',studentId\)\.eq\('id',id\)\.single\(\)/);
+ assert.match(source,/\.eq\('session_id',s\.id\)/);
+ assert.match(source,/LG_JOURNAL\.calendar/);
+ assert.match(source,/Ver cargas e observações/);
+ assert.match(source,/Observação do treino/);
+});
