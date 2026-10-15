@@ -74,7 +74,7 @@ try{
   await page.addScriptTag({content:read('trainer-journal.js').toString()});
   await page.evaluate(()=>{
    document.querySelector('#content').innerHTML='<div id="teacherJournal"></div>';
-   const client={from(table){let id;return {select(){return this;},eq(key,value){if(key==='student_id'&&value!=='own')throw Error('wrong owner');if(key==='id'||key==='session_id')id=value;return this;},order(){return this;},range(){return this;},single(){return this;},then(resolve){return Promise.resolve({data:table==='exercise_sets'?qa.sets[id]:id?qa.sessions.find(s=>s.id===id):qa.sessions}).then(resolve);}};}};
+   const client={from(table){let id;return {select(){return this;},eq(key,value){if(key==='student_id'&&value!=='own')throw Error('wrong owner');if(key==='id'||key==='session_id')id=value;return this;},gte(){return this;},lt(){return this;},order(){return this;},range(){return this;},single(){return this;},then(resolve){return Promise.resolve({data:table==='exercise_sets'?qa.sets[id]:id?qa.sessions.find(s=>s.id===id):qa.sessions}).then(resolve);}};}};
    LG_TRAINER_JOURNAL.mount(document.querySelector('#teacherJournal'),client,'own');
   });
   await page.locator('[data-journal-session]').first().click();await page.locator('#journalBack').waitFor();
