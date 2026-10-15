@@ -31,3 +31,14 @@ test('non-admin pages do not load trainer modules',()=>{
   assert.equal(urls.isAdmin(),false);
   assert.equal(listeners.length,0);
 });
+
+
+test('admin publishes the current student history calendar assets',()=>{
+  const admin=fs.readFileSync(__dirname+'/../admin.html','utf8');
+  const config=fs.readFileSync(__dirname+'/../config.js','utf8');
+  const management=fs.readFileSync(__dirname+'/../student-management.js','utf8');
+  assert.match(admin,/config\.js\?v=8/);
+  assert.match(admin,/trainer-journal\.js\?v=3/);
+  assert.match(config,/student-management\.js\?v=9/);
+  assert.match(management,/LG_TRAINER_JOURNAL\.mount\(box\.querySelector\('#studentWorkoutJournal'\),sb,id\)/);
+});
