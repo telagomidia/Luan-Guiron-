@@ -22,8 +22,8 @@ test('same local day aggregates multiple sessions, date check is escaped',()=>{
 test('observations trimmed, omitted empty, bounded and escaped in detail',()=>{
  assert.equal(J.normalizeNotes({e:' note '}).e,'note');assert.equal(Object.keys(J.normalizeNotes({e:' '})).length,0);
  assert.throws(()=>J.normalizeNotes({e:'x'.repeat(2001)}));assert.throws(()=>J.normalizeNotes({e:{}}));
- const html=J.detail({exercise_notes:{e:'<img onerror=bad>'},workout_snapshot:{exercises:{e:{name:'Supino original'}}}},[{exercise_id:'e',set_number:1,load_kg:0,reps:12,rir:0,workout_exercises:{exercise_name:'Renamed'}}]);
- assert.match(html,/Supino original/);assert.ok(!html.includes('Renamed'));assert.match(html,/&lt;img/);assert.match(html,/>0<\/td>/);
+ const html=J.detail({exercise_notes:{e:'<img onerror=bad>'},workout_snapshot:{exercises:{e:{name:'Supino original'}}}},[{exercise_id:'e',set_number:1,load_kg:0,reps:12,rir:0,rest_seconds:65,workout_exercises:{exercise_name:'Renamed'}}]);
+ assert.match(html,/Supino original/);assert.ok(!html.includes('Renamed'));assert.match(html,/&lt;img/);assert.match(html,/>0<\/td>/);assert.match(html,/1:05/);
  assert.match(J.detail({},[{exercise_id:'e',workout_exercises:{exercise_name:'Legacy'}}]),/Legacy/);
 });
 test('notes-only exercise remains visible in daily detail',()=>assert.match(J.detail({exercise_notes:{e:'Não fiz hoje'},workout_snapshot:{exercises:{e:{name:'Agachamento'}}}},[]),/Sem séries registradas/));
@@ -38,9 +38,9 @@ test('new save uses v2 with notes and validates before any RPC',async()=>{
  let called=0,payload;
  const q={abortSignal(){return this;},then(resolve){return Promise.resolve({data:{id:'s'}}).then(resolve);}};
  const api=M.createApi({rpc(name,args){called++;assert.equal(name,'record_student_workout_v2');payload=args;return q;}},'owner');
- const rows=[{exercise_id:'e',set_number:1,reps:12,load_kg:20,completed:true}];
+ const rows=[{exercise_id:'e',set_number:1,reps:12,load_kg:20,rest_seconds:75,completed:true}];
  await api.record('s','w',new Date().toISOString(),'session',rows,{e:'note'});
- assert.equal(payload.p_exercise_notes.e,'note');assert.equal(payload.p_sets[0].load_kg,20);assert.equal(payload.p_student_id,undefined);
+ assert.equal(payload.p_exercise_notes.e,'note');assert.equal(payload.p_sets[0].load_kg,20);assert.equal(payload.p_sets[0].rest_seconds,75);assert.equal(payload.p_student_id,undefined);
  await assert.rejects(()=>api.record('s','w',new Date().toISOString(),'',rows,{e:'x'.repeat(2001)}));assert.equal(called,1);
 });
 
@@ -59,3 +59,5 @@ test('trainer history scopes month and detail queries before rendering loads and
  assert.match(source,/Ver cargas e observações/);
  assert.match(source,/Observação do treino/);
 });
+
+test('rest migration is additive and preserves invoker security',()=>{const sql=fs.readFileSync(__dirname+'/../supabase/migrations/20261016205000_automatic_rest_timer.sql','utf8');assert.match(sql,/ADD COLUMN IF NOT EXISTS rest_seconds smallint/);assert.match(sql,/SECURITY INVOKER/);assert.match(sql,/BETWEEN 0 AND 3600/);});
