@@ -36,7 +36,7 @@
    const t=++ticket;holder.innerHTML='<p role="status">Carregando séries e cargas...</p>';
    try{
     const s=await query(client.from('workout_sessions').select('id,performed_at,notes,exercise_notes,workout_snapshot,workouts(name,training_plans(name))').eq('student_id',studentId).eq('id',id).single());
-    const sets=await query(client.from('exercise_sets').select('exercise_id,set_number,load_kg,reps,rir,completed,workout_exercises(exercise_name)').eq('session_id',s.id).order('set_number'));
+    const sets=await query(client.from('exercise_sets').select('exercise_id,set_number,load_kg,reps,rir,rest_seconds,completed,workout_exercises(exercise_name)').eq('session_id',s.id).order('set_number'));
     if(!visible(t))return;
     holder.innerHTML='<button type="button" class="ghost" id="journalBack">← Voltar ao calendário</button><h2>'+E(LG_JOURNAL.name(s))+'</h2><p class="muted">'+E(new Date(s.performed_at).toLocaleString('pt-BR'))+' · '+E(LG_JOURNAL.planName(s))+'</p>'+(s.notes?'<p class="prescription-note"><strong>Observação do treino:</strong> '+E(s.notes)+'</p>':'')+LG_JOURNAL.detail(s,sets);
     holder.querySelector('#journalBack').onclick=paint;
