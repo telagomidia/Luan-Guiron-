@@ -3,7 +3,7 @@
  const M=LG_PORTAL,V=LG_PORTAL_VIEWS,E=M.esc,D=M.date;
  const content=document.querySelector('#content'),nav=document.querySelector('#studentNav');
  const routes=[['home','Início'],['training','Meu treino'],['history','Histórico'],['assessments','Avaliações'],['progress','Evolução'],['anamnesis','Anamnese'],['guidance','Orientações'],['profile','Perfil']];
- let client,api,profile,route='home',revision=0,busy=false,dirty=false,timer=null,timerEnd=0;
+ let client,api,profile,route='home',revision=0,busy=false,dirty=false,timer=null,timerEnd=0,timerStatus='idle',timerRemaining=0,timerElapsed=0,timerRunStarted=0,timerRow=null,timerName='',audioContext=null;
  const menuToggle=document.querySelector('#portalMenuToggle');
  function setMenu(open,restoreFocus=false){
   document.body.classList.toggle('portal-menu-open',open);
@@ -118,29 +118,67 @@
    all('[data-workout]',b=>b.onclick=()=>{if(busy)return;if(dirty&&!confirm('Deseja trocar de treino sem salvar a sessão?'))return;dirty=false;drawWorkout(bundle,b.dataset.workout);});
   }catch(error){if(rev===revision)errorPanel(error,()=>openPlan(id));}
  }
- function timerStart(seconds){
-  if(timer)clearInterval(timer);timerEnd=Date.now()+seconds*1000;
-  const update=()=>{const out=content.querySelector('#restTime');if(!out){clearInterval(timer);timer=null;return;}const left=Math.max(0,Math.ceil((timerEnd-Date.now())/1000));out.textContent=Math.floor(left/60)+':'+String(left%60).padStart(2,'0');if(left===0){clearInterval(timer);timer=null;content.querySelector('#restLabel').textContent='Descanso concluído. Siga seu ritmo e a orientação do professor.';}};
-  timer=setInterval(update,500);update();
+ const restFormat=seconds=>Math.floor(Math.max(0,seconds)/60)+':'+String(Math.max(0,seconds)%60).padStart(2,'0');
+ function timerTone(){
+  try{audioContext=audioContext||new (window.AudioContext||window.webkitAudioContext)();audioContext.resume();const osc=audioContext.createOscillator(),gain=audioContext.createGain();osc.frequency.value=880;gain.gain.setValueAtTime(.12,audioContext.currentTime);gain.gain.exponentialRampToValueAtTime(.001,audioContext.currentTime+.35);osc.connect(gain).connect(audioContext.destination);osc.start();osc.stop(audioContext.currentTime+.35);}catch{}
+  if(navigator.vibrate)navigator.vibrate([180,80,180]);
+ }
+ function timerControls(){
+  const pause=content.querySelector('#pauseRest'),add=content.querySelector('#addRest'),skip=content.querySelector('#skipRest'),active=timerStatus==='running'||timerStatus==='paused';
+  if(pause){pause.disabled=!active;pause.textContent=timerStatus==='paused'?'Continuar':'Pausar';}
+  if(add)add.disabled=!active;if(skip)skip.disabled=!active;
+ }
+ function timerCommit(){
+  if(timerRow)timerRow.dataset.restSeconds=String(Math.min(3600,Math.max(0,Math.round(timerElapsed))));
+ }
+ function timerPaint(left,label){
+  const out=content.querySelector('#restTime'),text=content.querySelector('#restLabel');if(out)out.textContent=restFormat(left);if(text&&label)text.textContent=label;timerControls();
+ }
+ function timerPause(){
+  if(timerStatus!=='running')return;const now=Date.now(),segment=Math.max(0,(now-timerRunStarted)/1000);timerElapsed+=Math.min(timerRemaining,segment);timerRemaining=Math.max(0,Math.ceil((timerEnd-now)/1000));if(timer)clearInterval(timer);timer=null;timerStatus='paused';timerPaint(timerRemaining,'Descanso pausado · '+timerName);
+ }
+ function timerFinish(label='Descanso encerrado.',sound=false){
+  if(timerStatus==='running')timerPause();if(timer)clearInterval(timer);timer=null;timerStatus='done';timerCommit();timerRemaining=0;timerPaint(0,label);if(sound)timerTone();
+ }
+ function timerTick(){
+  if(timerStatus!=='running')return;const left=Math.max(0,Math.ceil((timerEnd-Date.now())/1000));timerPaint(left,'Descansando · '+timerName);
+  if(left===0){timerElapsed+=timerRemaining;timerRemaining=0;if(timer)clearInterval(timer);timer=null;timerStatus='done';timerCommit();timerPaint(0,'Descanso concluído — próxima série.');timerTone();}
+ }
+ function timerStart(seconds,row=null,name=''){
+  seconds=Math.min(3600,Math.max(1,Math.round(Number(seconds)||0)));if(timerStatus==='running'||timerStatus==='paused')timerFinish('Descanso anterior registrado.');
+  try{audioContext=audioContext||new (window.AudioContext||window.webkitAudioContext)();audioContext.resume();}catch{}
+  timerRow=row;timerName=name||'exercício';timerElapsed=0;timerRemaining=seconds;timerRunStarted=Date.now();timerEnd=timerRunStarted+seconds*1000;timerStatus='running';timer=setInterval(timerTick,250);timerTick();
+ }
+ function timerResume(){
+  if(timerStatus!=='paused'||timerRemaining<=0)return;timerRunStarted=Date.now();timerEnd=timerRunStarted+timerRemaining*1000;timerStatus='running';timer=setInterval(timerTick,250);timerTick();
+ }
+ function timerAdd(seconds=15){
+  if(timerStatus==='running'){timerEnd+=seconds*1000;timerRemaining=Math.max(0,Math.ceil((timerEnd-Date.now())/1000));timerTick();}
+  else if(timerStatus==='paused'){timerRemaining=Math.min(3600,timerRemaining+seconds);timerPaint(timerRemaining,'Descanso pausado · '+timerName);}
  }
  function drawWorkout(bundle,id){
   const w=bundle.workouts.find(x=>x.id===id);if(!w)return;if(timer){clearInterval(timer);timer=null;}
   all('[data-workout]',b=>b.setAttribute('aria-pressed',String(b.dataset.workout===id)));
   const box=content.querySelector('#workoutContent');
-  box.innerHTML='<div class="timer"><output id="restTime" aria-label="Tempo de descanso restante">0:00</output><span id="restLabel">Cronômetro opcional de descanso.</span>'+button('Parar','id="stopRest"')+'</div><div id="sessionFormBox"></div>';
-  at('#stopRest',()=>{if(timer)clearInterval(timer);timer=null;content.querySelector('#restTime').textContent='0:00';});
+  box.innerHTML='<div class="timer" role="timer" aria-live="polite"><div class="timer-clock"><span>DESCANSO</span><output id="restTime" aria-label="Tempo de descanso restante">0:00</output></div><span id="restLabel">Marque uma série como feita para iniciar.</span><div class="timer-actions">'+button('Pausar','id="pauseRest" disabled')+button('+15s','id="addRest" disabled')+button('Pular','id="skipRest" disabled')+'</div></div><div id="sessionFormBox"></div>';
+  at('#pauseRest',()=>timerStatus==='paused'?timerResume():timerPause());at('#addRest',()=>timerAdd(15));at('#skipRest',()=>timerFinish('Descanso pulado — próxima série.'));
   if(active(bundle.plan)&&w.exercises.length)sessionForm(w);
   else box.insertAdjacentHTML('beforeend','<div class="panel"><h2>'+E(w.name)+'</h2>'+w.exercises.map(x=>'<article class="exercise"><h3>'+E(x.exercise_name)+'</h3><p>'+M.value(x.target_sets)+' séries · '+V.reps(x)+' repetições · RIR '+M.value(x.target_rir)+'</p>'+V.note('Execução',x.execution_notes)+V.note('Observações',x.notes)+'</article>').join('')+empty(active(bundle.plan)?'O professor ainda está montando os exercícios.':'Plano inativo: disponível apenas para consulta.')+'</div>');
   box.scrollIntoView({behavior:'auto',block:'start'});
  }
  const setRow=(exercise,i)=>'<div class="set-row" data-set-row data-exercise="'+E(exercise.id)+'" data-set="'+i+'"><strong>'+i+'</strong><label>Carga (kg)<input data-load type="number" min="0" max="2000" step=".1" inputmode="decimal" aria-label="Carga em kg — série '+i+' de '+E(exercise.exercise_name)+'"></label><label>Repetições<input data-reps type="number" min="1" max="1000" step="1" inputmode="numeric" aria-label="Repetições — série '+i+' de '+E(exercise.exercise_name)+'"></label><label>RIR real<input data-rir type="number" min="0" max="10" step=".5" inputmode="decimal" aria-label="RIR — série '+i+' de '+E(exercise.exercise_name)+'"></label><label class="done"><input data-completed type="checkbox">Feita</label></div>';
+ const restPicker=exercise=>{const current=Math.min(3600,Math.max(1,Math.round(Number(exercise.rest_seconds)||60))),presets=[30,40,60,90,120];return '<div class="rest-choice"><strong>Descanso após cada série</strong><div class="rest-presets">'+presets.map(value=>button(restFormat(value),'data-rest-preset="'+value+'" aria-pressed="'+String(value===current)+'"')).join('')+'<label>Personalizar <input data-rest-custom type="number" inputmode="numeric" min="1" max="3600" step="1" value="'+current+'" aria-label="Descanso personalizado em segundos"> segundos</label>'+button('Iniciar agora','data-start-rest')+'</div></div>';};
  function sessionForm(w){
   const box=content.querySelector('#sessionFormBox');if(box.querySelector('form')){box.scrollIntoView({behavior:'smooth'});return;}
   const id=crypto.randomUUID();
-  box.innerHTML='<form class="panel" id="recordSession"><h2>Registrar '+E(w.name)+'</h2><p class="muted">Informe os valores realmente realizados. Marque “Feita” nas séries concluídas. Carga e RIR podem ficar vazios. Use sempre a mesma convenção de carga (total ou por halter), conforme seu professor. Os dados só são gravados ao finalizar.</p><div class="field"><label for="performedAt">Data e horário</label><input id="performedAt" name="performed_at" type="datetime-local" value="'+stateDate()+'" required></div>'+w.exercises.map(x=>'<section class="exercise" data-set-group="'+E(x.id)+'"><h3>'+E(x.exercise_name)+'</h3><div class="dose"><span>'+M.value(x.target_sets)+' séries</span><span>'+V.reps(x)+' repetições</span><span>RIR '+M.value(x.target_rir)+'</span><span>'+M.value(x.rest_seconds,'s')+' descanso</span></div>'+V.note('Execução',x.execution_notes)+V.note('Orientações do professor',x.notes)+(x.rest_seconds!=null?button('Iniciar descanso','data-rest="'+E(x.rest_seconds)+'"'):'')+'<div data-set-rows>'+Array.from({length:Math.min(20,Math.max(1,x.target_sets||1))},(_,i)=>setRow(x,i+1)).join('')+'</div>'+button('+ Adicionar série','data-add-set="'+E(x.id)+'"')+'<label class="journal-notes">Observações de hoje<textarea data-exercise-note="'+E(x.id)+'" maxlength="2000" placeholder="Como foi este exercício hoje?"></textarea></label></section>').join('')+'<div class="field"><label for="sessionNotes">Como foi o treino? Observações</label><textarea id="sessionNotes" name="notes" maxlength="5000"></textarea></div>'+formStatus+'<div class="actions"><button class="primary" type="submit">Finalizar e salvar treino</button>'+button('Cancelar registro','id="cancelSession"')+'</div></form>';
-  const form=box.querySelector('form');all('[data-rest]',b=>b.onclick=()=>timerStart(Number(b.dataset.rest)));all('[data-add-set]',b=>b.onclick=()=>{const group=form.querySelector('[data-set-group="'+b.dataset.addSet+'"] [data-set-rows]'),count=group.querySelectorAll('[data-set-row]').length;if(count>=50)return;b.disabled=count>=49;group.insertAdjacentHTML('beforeend',setRow(w.exercises.find(e=>e.id===b.dataset.addSet),count+1));dirty=true;});
+  box.innerHTML='<form class="panel" id="recordSession"><h2>Registrar '+E(w.name)+'</h2><p class="muted">Informe os valores realmente realizados. Marque “Feita” nas séries concluídas. Carga e RIR podem ficar vazios. Use sempre a mesma convenção de carga (total ou por halter), conforme seu professor. Os dados só são gravados ao finalizar.</p><div class="field"><label for="performedAt">Data e horário</label><input id="performedAt" name="performed_at" type="datetime-local" value="'+stateDate()+'" required></div>'+w.exercises.map(x=>'<section class="exercise" data-set-group="'+E(x.id)+'"><h3>'+E(x.exercise_name)+'</h3><div class="dose"><span>'+M.value(x.target_sets)+' séries</span><span>'+V.reps(x)+' repetições</span><span>RIR '+M.value(x.target_rir)+'</span><span>'+M.value(x.rest_seconds,'s')+' descanso</span></div>'+V.note('Execução',x.execution_notes)+V.note('Orientações do professor',x.notes)+restPicker(x)+'<div data-set-rows>'+Array.from({length:Math.min(20,Math.max(1,x.target_sets||1))},(_,i)=>setRow(x,i+1)).join('')+'</div>'+button('+ Adicionar série','data-add-set="'+E(x.id)+'"')+'<label class="journal-notes">Observações de hoje<textarea data-exercise-note="'+E(x.id)+'" maxlength="2000" placeholder="Como foi este exercício hoje?"></textarea></label></section>').join('')+'<div class="field"><label for="sessionNotes">Como foi o treino? Observações</label><textarea id="sessionNotes" name="notes" maxlength="5000"></textarea></div>'+formStatus+'<div class="actions"><button class="primary" type="submit">Finalizar e salvar treino</button>'+button('Cancelar registro','id="cancelSession"')+'</div></form>';
+  const form=box.querySelector('form');
+  form.addEventListener('click',event=>{const preset=event.target.closest('[data-rest-preset]');if(preset){const section=preset.closest('[data-set-group]'),input=section.querySelector('[data-rest-custom]');input.value=preset.dataset.restPreset;section.querySelectorAll('[data-rest-preset]').forEach(b=>b.setAttribute('aria-pressed',String(b===preset)));dirty=true;return;}const start=event.target.closest('[data-start-rest]');if(start){const section=start.closest('[data-set-group]'),seconds=Number(section.querySelector('[data-rest-custom]').value),name=section.querySelector('h3').textContent;timerStart(seconds,null,name);}});
+  form.addEventListener('input',event=>{dirty=true;if(event.target.matches('[data-rest-custom]')){const section=event.target.closest('[data-set-group]'),value=Number(event.target.value);section.querySelectorAll('[data-rest-preset]').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.restPreset)===value)));}});
+  form.addEventListener('change',event=>{if(!event.target.matches('[data-completed]'))return;dirty=true;const row=event.target.closest('[data-set-row]');if(!event.target.checked){if(timerRow===row)timerFinish('Descanso cancelado.');delete row.dataset.restSeconds;return;}const section=row.closest('[data-set-group]'),seconds=Number(section.querySelector('[data-rest-custom]').value),name=section.querySelector('h3').textContent;timerStart(seconds,row,name);});
+  all('[data-add-set]',b=>b.onclick=()=>{const group=form.querySelector('[data-set-group="'+b.dataset.addSet+'"] [data-set-rows]'),count=group.querySelectorAll('[data-set-row]').length;if(count>=50)return;b.disabled=count>=49;group.insertAdjacentHTML('beforeend',setRow(w.exercises.find(e=>e.id===b.dataset.addSet),count+1));dirty=true;});
   at('#cancelSession',()=>{if(dirty&&!confirm('Descartar o registro não salvo?'))return;dirty=false;box.innerHTML='';});
-  bindForm(form,values=>{const rows=[...form.querySelectorAll('[data-set-row]')].map(row=>({exercise_id:row.dataset.exercise,set_number:row.dataset.set,load_kg:row.querySelector('[data-load]').value,reps:row.querySelector('[data-reps]').value,rir:row.querySelector('[data-rir]').value,completed:row.querySelector('[data-completed]').checked}));return api.record(id,w.id,new Date(values.performed_at).toISOString(),values.notes,rows,Object.fromEntries([...form.querySelectorAll('[data-exercise-note]')].map(el=>[el.dataset.exerciseNote,el.value])));},saved=>{if(timer){clearInterval(timer);timer=null;}form.innerHTML='<h2>'+ (saved.reused?'Esta sessão já estava registrada.':'Sessão registrada!')+'</h2><p>Seu professor poderá acompanhar as séries e cargas salvas.</p>'+button('Ver treino salvo','id="viewSavedSession"',true)+button('Voltar ao calendário','data-route="home"');at('#viewSavedSession',()=>sessionDetail(saved.id));wireRoutes();});box.scrollIntoView({behavior:'smooth',block:'start'});
+  bindForm(form,values=>{if(timerStatus==='running'||timerStatus==='paused')timerFinish('Descanso registrado.');const rows=[...form.querySelectorAll('[data-set-row]')].map(row=>({exercise_id:row.dataset.exercise,set_number:row.dataset.set,load_kg:row.querySelector('[data-load]').value,reps:row.querySelector('[data-reps]').value,rir:row.querySelector('[data-rir]').value,rest_seconds:row.dataset.restSeconds??'',completed:row.querySelector('[data-completed]').checked}));return api.record(id,w.id,new Date(values.performed_at).toISOString(),values.notes,rows,Object.fromEntries([...form.querySelectorAll('[data-exercise-note]')].map(el=>[el.dataset.exerciseNote,el.value])));},saved=>{if(timer){clearInterval(timer);timer=null;}timerStatus='idle';timerRow=null;form.innerHTML='<h2>'+ (saved.reused?'Esta sessão já estava registrada.':'Sessão registrada!')+'</h2><p>Seu professor poderá acompanhar as séries e cargas salvas.</p>'+button('Ver treino salvo','id="viewSavedSession"',true)+button('Voltar ao calendário','data-route="home"');at('#viewSavedSession',()=>sessionDetail(saved.id));wireRoutes();});box.scrollIntoView({behavior:'smooth',block:'start'});
  }
  async function sessions(rev){
   let offset=0;const data=await api.sessions(offset);if(rev!==revision)return;

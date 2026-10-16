@@ -38,7 +38,7 @@ test('admin publishes the current student history calendar assets',()=>{
   const config=fs.readFileSync(__dirname+'/../config.js','utf8');
   const management=fs.readFileSync(__dirname+'/../student-management.js','utf8');
   assert.match(admin,/config\.js\?v=8/);
-  assert.match(admin,/trainer-journal\.js\?v=3/);
+  assert.match(admin,/trainer-journal\.js\?v=4/);
   assert.match(config,/student-management\.js\?v=9/);
   assert.match(management,/LG_TRAINER_JOURNAL\.mount\(box\.querySelector\('#studentWorkoutJournal'\),sb,id\)/);
 });

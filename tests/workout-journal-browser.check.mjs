@@ -48,7 +48,9 @@ try{
   await page.locator('[data-workout="a"]').click();await page.locator('#recordSession').waitFor();
   assert.match(await page.locator('#recordSession').innerText(),/Prescrição do professor/);
   await fits();assert.equal(await page.locator('[data-set-row]').count(),3);
-  for(let i=0;i<3;i++){await page.locator('[data-load]').nth(i).fill(String((i+1)*20));await page.locator('[data-reps]').nth(i).fill(String(12-i*2));await page.locator('[data-completed]').nth(i).check();}
+  await page.locator('[data-rest-custom]').first().fill('2');await page.locator('[data-load]').nth(0).fill('20');await page.locator('[data-reps]').nth(0).fill('12');await page.locator('[data-completed]').nth(0).check();
+  assert.match(await page.locator('#restLabel').innerText(),/Supino reto/);await page.waitForTimeout(1100);await page.locator('#pauseRest').click();assert.match(await page.locator('#restLabel').innerText(),/pausado/);await page.locator('#addRest').click();await page.locator('#pauseRest').click();await page.locator('#skipRest').click();
+  for(let i=1;i<3;i++){await page.locator('[data-load]').nth(i).fill(String((i+1)*20));await page.locator('[data-reps]').nth(i).fill(String(12-i*2));await page.locator('[data-completed]').nth(i).check();}
   await page.locator('[data-exercise-note]').fill('Última série com ajuda <script>teste</script>');
   await page.locator('#sessionNotes').fill('Treino realizado');
   if(width===390)await page.screenshot({path:output+'/journal-record-mobile.png',fullPage:true});
@@ -59,9 +61,9 @@ try{
   await page.locator('#viewSavedSession').waitFor();
   const attempts=await page.evaluate(()=>qa.attempts);
   assert.equal(attempts.length,2);assert.equal(attempts[0].payload.p_session_id,attempts[1].payload.p_session_id);
-  assert.equal(attempts[1].name,'record_student_workout_v2');assert.deepEqual(attempts[1].payload.p_sets.map(s=>s.load_kg),[20,40,60]);
+  assert.equal(attempts[1].name,'record_student_workout_v2');assert.deepEqual(attempts[1].payload.p_sets.map(s=>s.load_kg),[20,40,60]);assert.ok(attempts[1].payload.p_sets[0].rest_seconds>=1);
   await page.locator('#viewSavedSession').click();await page.locator('.journal-details').waitFor();
-  assert.equal(await page.locator('.journal-details tbody tr').count(),3);assert.match(await page.locator('.journal-details').innerText(),/Última série com ajuda/);assert.equal(await page.locator('#content script').count(),0);await fits();
+  assert.equal(await page.locator('.journal-details tbody tr').count(),3);assert.match(await page.locator('.journal-details').innerText(),/Última série com ajuda/);assert.match(await page.locator('.journal-details').innerText(),/Descanso/);assert.equal(await page.locator('#content script').count(),0);await fits();
   if(width<=850)await page.locator('#portalMenuToggle').click();await page.locator('[data-page="home"]').click();await page.locator('[data-calendar-session]').first().waitFor();
   assert.equal(await page.locator('[data-calendar-session]').count(),2);
   assert.equal(await page.locator('.has-session').count(),1);
@@ -84,5 +86,5 @@ try{
   assert.match(await page.locator('#teacherJournal').innerText(),/Última série com ajuda/);assert.equal(await page.locator('#teacherJournal tbody tr').count(),3);
   assert.deepEqual(errors,[]);await context.close();
  }
- console.log('PASS: 4 viewports, start/choice/suggestion override, prescriptions, 20/40/60 kg, per-exercise note, failure/retry/same UUID/double-submit, calendar/multiple sessions/month/error, detail escaping and professor read.');
+ console.log('PASS: 4 viewports, start/choice/suggestion override, prescriptions, 20/40/60 kg, per-exercise note, failure/retry/same UUID/double-submit, calendar/multiple sessions/month/error, automatic/personal rest timer, pause/add/skip, saved rest, detail escaping and professor read.');
 }finally{await browser.close();}
