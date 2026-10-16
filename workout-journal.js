@@ -22,10 +22,10 @@
   const groups=new Map(),snapshot=session.workout_snapshot?.exercises||{};
   for(const s of sets){if(!groups.has(s.exercise_id))groups.set(s.exercise_id,[]);groups.get(s.exercise_id).push(s);}
   for(const id of Object.keys(session.exercise_notes||{}))if(!groups.has(id))groups.set(id,[]);
-  const val=v=>v===null||v===undefined?'—':E(v);
+  const val=v=>v===null||v===undefined?'—':E(v),rest=v=>v===null||v===undefined?'—':Math.floor(Number(v)/60)+':'+String(Number(v)%60).padStart(2,'0');
   return '<div class="journal-details">'+[...groups].sort(([a],[b])=>(snapshot[a]?.position??0)-(snapshot[b]?.position??0)).map(([id,rows])=>{
    const title=snapshot[id]?.name||rows[0]?.workout_exercises?.exercise_name||'Exercício';
-   return '<section class="journal-exercise"><h3>'+E(title)+'</h3>'+(rows.length?'<div class="table-wrap"><table><caption class="small">Séries realizadas — '+E(title)+'</caption><thead><tr><th scope="col">Série</th><th scope="col">Carga (kg)</th><th scope="col">Reps</th><th scope="col">RIR</th></tr></thead><tbody>'+[...rows].sort((a,b)=>a.set_number-b.set_number).map(s=>'<tr><td>'+val(s.set_number)+'</td><td>'+val(s.load_kg)+'</td><td>'+val(s.reps)+'</td><td>'+val(s.rir)+'</td></tr>').join('')+'</tbody></table></div>':'<p class="small">Sem séries registradas neste exercício.</p>')+(session.exercise_notes?.[id]?'<p class="prescription-note"><strong>Observações de hoje:</strong> '+E(session.exercise_notes[id])+'</p>':'')+'</section>';
+   return '<section class="journal-exercise"><h3>'+E(title)+'</h3>'+(rows.length?'<div class="table-wrap"><table><caption class="small">Séries realizadas — '+E(title)+'</caption><thead><tr><th scope="col">Série</th><th scope="col">Carga (kg)</th><th scope="col">Reps</th><th scope="col">RIR</th><th scope="col">Descanso</th></tr></thead><tbody>'+[...rows].sort((a,b)=>a.set_number-b.set_number).map(s=>'<tr><td>'+val(s.set_number)+'</td><td>'+val(s.load_kg)+'</td><td>'+val(s.reps)+'</td><td>'+val(s.rir)+'</td><td>'+rest(s.rest_seconds)+'</td></tr>').join('')+'</tbody></table></div>':'<p class="small">Sem séries registradas neste exercício.</p>')+(session.exercise_notes?.[id]?'<p class="prescription-note"><strong>Observações de hoje:</strong> '+E(session.exercise_notes[id])+'</p>':'')+'</section>';
   }).join('')+'</div>';
  }
  function calendar(year,month,sessions,selected){
