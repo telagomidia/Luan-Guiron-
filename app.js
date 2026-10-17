@@ -63,9 +63,9 @@
       if (mode === 'recovery') {
         setBusy(true); show('Enviando link…');
         try {
-          // The configured site root is the most reliable Auth allow-list callback.
-          // On return, this page forwards the recovery fragment to the isolated password page.
-          const redirectTo = window.LG_URLS?.login?.() || new URL('./', location.href).href;
+          // Send new recovery emails directly to the isolated password page.
+          // The root forwarding above remains for links issued before this update.
+          const redirectTo = window.LG_URLS?.password?.() || new URL('./senha', location.href).href;
           const result = await window.LG_AUTH.deadline(() => client.auth.resetPasswordForEmail(email, { redirectTo }));
           if (result.error) throw result.error;
           show('Se este e-mail estiver cadastrado, você receberá um link para criar uma nova senha. Confira também o spam.', 'success');

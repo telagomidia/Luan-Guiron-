@@ -30,7 +30,8 @@
      const login=loginRequired||values.existing_access==='on';
      // A lost signup response may have created the account. Do not silently create again.
      if(!login)loginRequired=true;
-     const result=await LG_AUTH.deadline(()=>login?client.auth.signInWithPassword({email:credentials.email,password:credentials.password}):client.auth.signUp({email:credentials.email,password:credentials.password,options:{data:credentials.meta}}));
+     const redirect=window.LG_URLS?.login?.()||'https://luanguiron.com.br/';
+     const result=await LG_AUTH.deadline(()=>login?client.auth.signInWithPassword({email:credentials.email,password:credentials.password}):client.auth.signUp({email:credentials.email,password:credentials.password,options:{data:credentials.meta,emailRedirectTo:redirect}}));
      if(result.error){
       const ambiguous=result.error.code==='request_timeout'||result.error.name==='AuthRetryableFetchError'||result.error.status>=500||result.error.status===0;
       if(!login&&!ambiguous&&!['user_already_exists','email_exists'].includes(result.error.code))loginRequired=false;
