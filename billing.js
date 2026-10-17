@@ -1,0 +1,51 @@
+/* Payments UI: financial writes and activation remain on the server. */
+(() => {
+ 'use strict';
+ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const money=c=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(c/100);
+ const labels={paid:'Pago',pending:'Aguardando pagamento',overdue:'Em atraso',refunded:'Estornado',review:'Em análise',creating:'Preparando pagamento',canceled:'Cancelado',expired:'Expirado',failed:'Não concluído'};
+ async function result(query){const {data,error}=await query;if(error)throw error;return data;}
+ const status=(root,text)=>{const p=root.querySelector('[data-billing-status]');if(p)p.textContent=text;};
+ const errorText='Não foi possível concluir. Atualize a área e tente novamente.';
+ async function mount({client,container,studentId,trainer=false}){
+  const ticket={};container._billingTicket=ticket;
+  container.innerHTML='<div class="ey">Financeiro</div><h1>'+ (trainer?'Cobranças':'Plano e pagamentos')+'</h1><p role="status">Carregando…</p>';
+  try{
+   const settings=await result(client.from('billing_settings').select('*').single());
+   if(container._billingTicket!==ticket)return;
+   if(trainer)return admin(client,container,settings,ticket);
+   const [account,payments,orders,services]=await Promise.all([
+    result(client.from('billing_accounts').select('*').eq('student_id',studentId).maybeSingle()),
+    result(client.from('billing_payments').select('*').eq('student_id',studentId).order('due_date',{ascending:false})),
+    result(client.from('billing_orders').select('*').eq('student_id',studentId).order('created_at',{ascending:false})),
+    result(client.from('billing_services').select('*').eq('active',true))]);
+   if(container._billingTicket!==ticket)return;
+   const ready=settings.enabled&&settings.starts_on&&settings.grace_days!==null;
+   container.innerHTML='<div class="ey">Financeiro</div><h1>Plano e pagamentos</h1><section class="panel"><h2>Treinamento personalizado</h2><p class="billing-price">'+money(settings.monthly_cents)+' <small>/ mês</small></p><p>'+ (account?.exempt?'Isento da mensalidade':!ready?'Cobranças ainda não iniciadas':account?.asaas_subscription_id?'Assinatura cadastrada':'Plano mensal disponível')+'</p>'+(!ready?'<p class="muted">O professor avisará quando os pagamentos estiverem disponíveis.</p>':'')+(account?.exempt?'':paymentControls('monthly',!ready||!!account?.asaas_subscription_id))+'</section><section class="panel"><h2>Avaliações</h2><button type="button" class="ghost" id="billingAssessments" aria-expanded="false" aria-controls="billingCatalog">Contratar avaliação</button><div id="billingCatalog" hidden>'+ (services.length?services.map(s=>'<article><h3>'+esc(s.name)+'</h3><p>'+esc(s.description)+'</p><strong>'+money(s.price_cents)+'</strong>'+paymentControls(s.id,!ready)+'</article>').join(''):'<p>Nenhuma avaliação disponível no momento.</p>')+'</div></section><section class="panel"><h2>Histórico de pagamentos</h2>'+ (payments.length?'<ul>'+payments.map(p=>'<li>'+esc(p.due_date)+' — '+money(p.amount_cents)+' — '+esc(labels[p.status]||p.status)+'</li>').join('')+'</ul>':'<p>Nenhum pagamento registrado.</p>')+'<h3>Cobranças</h3>'+orders.map(o=>'<p>'+money(o.amount_cents)+' — '+esc(labels[o.status]||o.status)+(o.status==='pending'&&safeUrl(o.payment_url)?' · <a rel="noopener noreferrer" href="'+esc(o.payment_url)+'">Abrir pagamento</a>':'')+'</p>').join('')+'</section><p data-billing-status role="status" aria-live="polite"></p><button class="ghost" type="button" id="billingRefresh">Atualizar pagamentos</button>';
+   container.querySelector('#billingAssessments').onclick=e=>{const box=container.querySelector('#billingCatalog');box.hidden=!box.hidden;e.target.setAttribute('aria-expanded',String(!box.hidden));};
+   container.querySelector('#billingRefresh').onclick=()=>mount({client,container,studentId});
+   container.querySelectorAll('[data-payment-form]').forEach(form=>{form.onsubmit=async e=>{
+    e.preventDefault();const submit=form.querySelector('button');if(submit.disabled||!form.reportValidity())return;submit.disabled=true;status(container,'Preparando pagamento…');
+    try{const {data,error}=await client.functions.invoke('billing',{body:{method:form.elements.method.value,cpf:form.elements.cpf.value,...(form.dataset.paymentForm==='monthly'?{}:{service_id:form.dataset.paymentForm})}});if(error||!safeUrl(data?.url))throw Error();location.assign(data.url);}
+    catch{status(container,'Pagamento indisponível. Atualize esta área; se já houver cobrança, use o link existente ou fale com o professor.');submit.disabled=false;}
+   };});
+  }catch{if(container._billingTicket===ticket)container.innerHTML='<h1>Pagamentos</h1><p role="status">'+errorText+'</p>';}
+ }
+ function safeUrl(value){try{const u=new URL(value);return u.protocol==='https:'&&(u.hostname==='asaas.com'||u.hostname.endsWith('.asaas.com'));}catch{return false;}}
+ function paymentControls(id,disabled){return '<form data-payment-form="'+esc(id)+'" class="billing-form"><label>Forma de pagamento<select name="method"><option value="PIX">Pix</option><option value="CREDIT_CARD">Cartão'+(id==='monthly'?' — assinatura mensal':'')+'</option></select></label><label>CPF do pagador<input name="cpf" autocomplete="off" inputmode="numeric" placeholder="Somente números" pattern="[0-9]{11}" maxlength="11" required></label><p class="small">Dados utilizados para identificar o pagamento no Asaas. Pix exige pagamento a cada mês.</p><button type="submit" class="primary" '+(disabled?'disabled':'')+'>'+(id==='monthly'?'Pagar mensalidade':'Contratar')+'</button></form>';}
+ async function admin(client,container,settings,ticket){
+  const [students,accounts,payments,services]=await Promise.all([
+   result(client.from('profiles').select('id,full_name').eq('role','student').order('full_name')),
+   result(client.from('billing_accounts').select('*')),
+   result(client.from('billing_payments').select('*').order('due_date',{ascending:false})),
+   result(client.from('billing_services').select('*').order('name'))]);
+  if(container._billingTicket!==ticket)return;
+  container.innerHTML='<div class="ey">Gestão financeira</div><h1>Cobranças</h1><p class="muted">'+(settings.enabled?'Integração habilitada.':'Cobranças desativadas. Nenhuma mensalidade é gerada automaticamente.')+'</p><form id="billingPrice" class="panel billing-form"><h2>Mensalidade padrão</h2><label>Valor em reais<input name="price" type="number" min="0.01" step="0.01" value="'+(settings.monthly_cents/100).toFixed(2)+'" required></label><p class="small">Vale para novas contratações. Assinaturas existentes e cobranças emitidas mantêm o valor contratado.</p><button class="primary">Salvar valor</button></form><section class="panel"><h2>Alunos e isenções</h2><p>A isenção refere-se apenas à mensalidade. Catherine: vincular quando o cadastro estiver disponível.</p><div class="list">'+students.map(s=>{const a=accounts.find(a=>a.student_id===s.id);return '<div class="row"><div><b>'+esc(s.full_name)+'</b><small>'+ (a?.exempt?'Isento':'Mensalidade padrão')+'</small></div><button class="ghost" data-exempt="'+esc(s.id)+'" data-value="'+!a?.exempt+'">'+(a?.exempt?'Retirar isenção':'Conceder isenção')+'</button></div>';}).join('')+'</div></section><section class="panel"><h2>Avaliações para contratação</h2><p>'+ (services.length?'Gerencie a disponibilidade das opções cadastradas.':'Nenhuma modalidade cadastrada.')+'</p>'+services.map(s=>'<p>'+esc(s.name)+' — '+money(s.price_cents)+' <button class="ghost" data-service="'+esc(s.id)+'" data-active="'+!s.active+'">'+(s.active?'Desativar':'Ativar')+'</button></p>').join('')+'<details><summary>Cadastrar avaliação futuramente</summary><form id="billingService" class="billing-form"><label>Nome<input name="name" maxlength="120" required></label><label>Descrição<textarea name="description" maxlength="2000"></textarea></label><label>Preço em reais<input name="price" type="number" min="0.01" step="0.01" required></label><button class="primary">Salvar como inativa</button></form></details></section><section class="panel"><h2>Pagamentos registrados</h2>'+(payments.length?payments.map(p=>'<p>'+esc(students.find(s=>s.id===p.student_id)?.full_name||'Aluno')+' — '+money(p.amount_cents)+' — '+esc(labels[p.status]||p.status)+'</p>').join(''):'<p>Nenhum pagamento registrado.</p>')+'</section><p data-billing-status role="status" aria-live="polite"></p>';
+  async function save(button,operation){button.disabled=true;try{await operation();if(container._billingTicket!==ticket)return;await mount({client,container,trainer:true});status(container,'Alteração salva.');}catch{status(container,errorText);button.disabled=false;}}
+  container.querySelector('#billingPrice').onsubmit=e=>{e.preventDefault();const form=e.target;save(form.querySelector('button'),()=>result(client.from('billing_settings').update({monthly_cents:Math.round(Number(form.elements.price.value)*100)}).eq('id',true)));};
+  container.querySelectorAll('[data-exempt]').forEach(b=>b.onclick=()=>{const account=accounts.find(a=>a.student_id===b.dataset.exempt);if(account?.asaas_subscription_id){status(container,'Esta conta tem assinatura no Asaas. Cancele a recorrência e confira cobranças pendentes antes de alterar a isenção.');return;}save(b,()=>result(account?client.from('billing_accounts').update({exempt:b.dataset.value==='true',exemption_note:'Definida pelo professor'}).eq('student_id',b.dataset.exempt):client.from('billing_accounts').insert({student_id:b.dataset.exempt,exempt:b.dataset.value==='true',exemption_note:'Definida pelo professor'})));});
+  container.querySelector('#billingService').onsubmit=e=>{e.preventDefault();const f=e.target;save(f.querySelector('button'),()=>result(client.from('billing_services').insert({name:f.elements.name.value.trim(),description:f.elements.description.value,price_cents:Math.round(Number(f.elements.price.value)*100),active:false})));};
+  container.querySelectorAll('[data-service]').forEach(b=>b.onclick=()=>save(b,()=>result(client.from('billing_services').update({active:b.dataset.active==='true'}).eq('id',b.dataset.service))));
+ }
+ window.LG_BILLING=Object.freeze({mount,safeUrl});
+})();

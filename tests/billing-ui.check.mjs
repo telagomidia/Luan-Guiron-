@@ -1,0 +1,13 @@
+import fs from 'node:fs';import assert from 'node:assert/strict';
+const {Window}=await import(process.env.HAPPY_DOM_ENTRY||'happy-dom');
+const w=new Window({url:'https://luanguiron.com.br/portal.html'});w.document.body.innerHTML='<main id="root"></main>';w.eval(fs.readFileSync(new URL('../billing.js',import.meta.url),'utf8'));
+const root=w.document.querySelector('#root');let exempt=true,writes=0;
+const client={from(table){let filters={};const q={select(){return q},eq(k,v){filters[k]=v;return q},order(){return q},single(){return q},maybeSingle(){return q},then(resolve){let data={billing_settings:{monthly_cents:6000,enabled:false,starts_on:null,grace_days:null},billing_accounts:filters.student_id?{student_id:'own',exempt}:[],billing_payments:[],billing_orders:[],billing_services:[],profiles:[{id:'own',full_name:'Aluno <script>alert(1)</script>'}]}[table];return Promise.resolve({data,error:null}).then(resolve);}};return q;},functions:{invoke(){writes++;throw Error('must not create payment')}}};
+await w.LG_BILLING.mount({client,container:root,studentId:'own'});
+assert.match(root.textContent,/Isento/);assert.equal(root.querySelectorAll('[data-payment-form]').length,0);root.querySelector('#billingAssessments').click();assert.equal(root.querySelector('#billingCatalog').hidden,false);assert.match(root.textContent,/Nenhuma avaliação disponível/);
+exempt=false;await w.LG_BILLING.mount({client,container:root,studentId:'own'});assert.equal(root.querySelector('[type=submit]').disabled,true);assert.match(root.textContent,/60,00/);assert.match(root.textContent,/Cobranças ainda não iniciadas/);assert.equal(writes,0);
+for(const url of ['javascript:alert(1)','https://asaas.com.evil.test/x','http://asaas.com/x','https://evil.test'])assert.equal(w.LG_BILLING.safeUrl(url),false);
+assert.equal(w.LG_BILLING.safeUrl('https://www.asaas.com/i/test'),true);
+await w.LG_BILLING.mount({client,container:root,trainer:true});assert.equal(root.querySelectorAll('script').length,0);assert.match(root.textContent,/Aluno <script>/);assert.match(root.textContent,/Nenhuma modalidade cadastrada/);assert.equal(root.querySelector('#billingService input[name=name]').value,'');
+let resolveSettings;const slow={from(){return {select(){return this},single(){return new Promise(r=>resolveSettings=r)}}}};const pending=w.LG_BILLING.mount({client:slow,container:root,studentId:'own'});root._billingTicket=null;root.textContent='Outra área';resolveSettings({data:{monthly_cents:6000,enabled:false}});await pending;assert.equal(root.textContent,'Outra área');
+console.log('Billing UI: exemption, empty catalog, disabled checkout, escaping and trusted URLs passed.');await w.happyDOM.close();
