@@ -38,7 +38,7 @@ try{
    assert.ok(Math.abs(brand.x+brand.width/2-width/2)<2,'Centered brand @'+width);
    assert.ok((await page.locator('h1').boundingBox()).y<180,'No empty navigation gap');
    await toggle.focus();await page.keyboard.press('Enter');assert.equal(await toggle.getAttribute('aria-expanded'),'true');
-   assert.equal(await nav.locator('button:visible').count(),8);await fits();
+   assert.equal(await nav.locator('button:visible').count(),9);await fits();
    assert.equal(await nav.evaluate(e=>getComputedStyle(e).position),'fixed');
    const navBox=await nav.boundingBox(),mainBox=await page.locator('main').boundingBox();
    assert.ok(Math.abs(navBox.y-72)<1&&mainBox.y>=72,'Menu anchored below header');
@@ -62,7 +62,7 @@ try{
    assert.equal(await toggle.isVisible(),false);assert.equal(await nav.isVisible(),true);
    await page.waitForFunction(()=>document.querySelector('#portalMenuToggle').getAttribute('aria-expanded')==='false');
    await page.setViewportSize({width,height:844});await nav.waitFor({state:'hidden'});
-  }else{assert.equal(await toggle.isVisible(),false);assert.equal(await nav.locator('button:visible').count(),8);}
+  }else{assert.equal(await toggle.isVisible(),false);assert.equal(await nav.locator('button:visible').count(),9);}
   await page.locator('#content').evaluate(e=>e.style.minHeight='2200px');
   for(const y of [700,350]){
    await page.evaluate(y=>window.scrollTo(0,y),y);
@@ -73,7 +73,7 @@ try{
    await toggle.click();
    assert.equal(await page.evaluate(()=>scrollY),350,'Opening menu preserves reading position');
    assert.ok(Math.abs((await nav.boundingBox()).y-72)<1,'Menu reachable from scrolled page');
-   assert.equal(await nav.locator('button:visible').count(),8);
+   assert.equal(await nav.locator('button:visible').count(),9);
    if(width===390)await page.screenshot({path:output+'/portal-sticky-scrolled.png'});
    await page.keyboard.press('Escape');assert.equal(await nav.isVisible(),false);
    await page.setViewportSize({width,height:260});await toggle.click();
@@ -86,3 +86,4 @@ try{
  }
  console.log('PASS: portal top menu at seven widths, brand centering, keyboard/Escape, all options, focus, dirty form guard, outside click, resize, shadows and no overflow.');
 }finally{await browser.close();}
+
