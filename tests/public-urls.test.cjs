@@ -42,3 +42,18 @@ test('admin publishes the current student history calendar assets',()=>{
   assert.match(config,/student-management\.js\?v=9/);
   assert.match(management,/LG_TRAINER_JOURNAL\.mount\(box\.querySelector\('#studentWorkoutJournal'\),sb,id\)/);
 });
+
+test('every page publishes the official LG favicon',()=>{
+  const pages=['index.html','admin.html','portal.html','senha.html','cadastro.html','ativar-admin.html'];
+  const favicon='<link rel="icon" type="image/png" sizes="512x512" href="./public/favicon-lg.png?v=1">';
+  for(const page of pages){
+    const html=fs.readFileSync(__dirname+'/../'+page,'utf8');
+    assert.equal(html.includes(favicon),true,page+' must use the official LG favicon');
+    assert.doesNotMatch(html,/public\/(?:favicon\.svg|logo-lg-official\.svg)/);
+  }
+
+  const icon=fs.readFileSync(__dirname+'/../public/favicon-lg.png');
+  assert.equal(icon.subarray(0,8).toString('hex'),'89504e470d0a1a0a');
+  assert.equal(icon.readUInt32BE(16),512);
+  assert.equal(icon.readUInt32BE(20),512);
+});
