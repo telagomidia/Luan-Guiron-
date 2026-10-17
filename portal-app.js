@@ -29,7 +29,7 @@
   if(busy)return;
   if(!routes.some(([key])=>key===next))next='home';
   if(!force&&dirty&&!window.confirm('Você tem informações não salvas. Deseja sair desta tela?'))return;
-  dirty=false;route=next;setMenu(false);const current=++revision;if(timer){clearInterval(timer);timer=null;}
+  dirty=false;route=next;content._billingTicket=null;setMenu(false);const current=++revision;if(timer){clearInterval(timer);timer=null;}
   nav.querySelectorAll('[data-page]').forEach(b=>{b.setAttribute('aria-current',b.dataset.page===next?'page':'false');});
   content.innerHTML=heading(routes.find(([key])=>key===next)[1])+'<p role="status">Carregando...</p><div class="loading-line"></div>';
   history.replaceState(null,'','#'+next);

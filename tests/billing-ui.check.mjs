@@ -9,4 +9,5 @@ exempt=false;await w.LG_BILLING.mount({client,container:root,studentId:'own'});a
 for(const url of ['javascript:alert(1)','https://asaas.com.evil.test/x','http://asaas.com/x','https://evil.test'])assert.equal(w.LG_BILLING.safeUrl(url),false);
 assert.equal(w.LG_BILLING.safeUrl('https://www.asaas.com/i/test'),true);
 await w.LG_BILLING.mount({client,container:root,trainer:true});assert.equal(root.querySelectorAll('script').length,0);assert.match(root.textContent,/Aluno <script>/);assert.match(root.textContent,/Nenhuma modalidade cadastrada/);assert.equal(root.querySelector('#billingService input[name=name]').value,'');
+let resolveSettings;const slow={from(){return {select(){return this},single(){return new Promise(r=>resolveSettings=r)}}}};const pending=w.LG_BILLING.mount({client:slow,container:root,studentId:'own'});root._billingTicket=null;root.textContent='Outra área';resolveSettings({data:{monthly_cents:6000,enabled:false}});await pending;assert.equal(root.textContent,'Outra área');
 console.log('Billing UI: exemption, empty catalog, disabled checkout, escaping and trusted URLs passed.');await w.happyDOM.close();
