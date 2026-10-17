@@ -73,6 +73,11 @@ try{
    if(name==='index'){
     await page.locator('#loginModal').evaluate(dialog=>dialog.showModal());
     const box=await page.locator('.login-box').boundingBox();assert.ok(box.width>200&&box.x>=0&&box.x+box.width<=width+1,'Login dialog fit');count++;
+    assert.equal(await page.locator('#forgotPassword').textContent(),'Esqueci a senha');
+    assert.equal(await page.locator('#createAccount').textContent(),'Criar conta');
+    assert.equal(await page.locator('#loginSubmit').textContent(),'Fazer login');
+    const actions=await page.locator('.login-links').evaluate(el=>({width:el.scrollWidth,client:el.clientWidth,right:el.getBoundingClientRect().right}));
+    assert.ok(actions.width<=actions.client+1&&actions.right<=width+1,'Login recovery actions fit @'+width);count++;
    }
    if(name==='admin'){
     assert.equal(await page.locator('.table-scroll table').count(),1);
