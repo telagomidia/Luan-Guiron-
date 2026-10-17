@@ -30,7 +30,7 @@ const fill=(s,value)=>{one(s).value=value;one(s).dispatchEvent(new window.Event(
 await settle();assert.match(one('#content').textContent,/Olá, Aluno/);
 assert.ok(one('.training-focus').compareDocumentPosition(one('.stats')) & 4,'Training precedes metrics');
 await click('#portalMenuToggle');assert.equal(one('#portalMenuToggle').getAttribute('aria-expanded'),'true');
-assert.equal(doc.querySelectorAll('#studentNav [data-page]').length,8);assert.equal(doc.querySelector('#portalMore'),null);
+assert.equal(doc.querySelectorAll('#studentNav [data-page]').length,9);assert.equal(doc.querySelector('#portalMore'),null);
 doc.dispatchEvent(new window.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
 assert.equal(one('#portalMenuToggle').getAttribute('aria-expanded'),'false');assert.equal(doc.activeElement,one('#portalMenuToggle'));
 await click('#portalMenuToggle');await click('#content');assert.equal(one('#portalMenuToggle').getAttribute('aria-expanded'),'false');
