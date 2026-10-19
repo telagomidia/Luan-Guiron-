@@ -21,7 +21,7 @@ try{
   await page.goto('http://portal.test/portal.html');
   await page.evaluate(()=>{
    const profile={id:'qa',role:'student',full_name:'Lucas Teste',email:'qa@example.invalid'};
-   window.LG_AUTH={createClient:()=>({}),access:async()=>({user:{id:'qa'},profile}),sessionExpired:()=>false,message:()=> 'Falha'};
+   window.LG_AUTH={createClient:()=>({rpc:async()=>({data:{allowed:true}})}),access:async()=>({user:{id:'qa'},profile}),sessionExpired:()=>false,message:()=> 'Falha'};
    window.qaApi={profile:async()=>profile,plans:async()=>[{id:'plan',active:true,name:'Bloco inicial — adaptação técnica, hipertrofia e recomposição corporal',goal:'Hipertrofia com ênfase em peito, ombros, costas e braços.'}],sessionsMonth:async()=>[],latestWorkout:async()=>null,sessions:async()=>[],assessments:async()=>[],anamnesis:async()=>null,guidance:async()=>[]};
   });
   for(const f of ['workout-journal.js','anamnesis-schema.js','portal-model.js','portal-views.js'])await page.addScriptTag({content:read(f).toString()});
