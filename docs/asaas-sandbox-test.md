@@ -64,3 +64,13 @@ RLS sem políticas nas tabelas exclusivas de serviço é intencional; não adici
 - https://docs.asaas.com/reference/confirmar-pagamento
 - https://docs.asaas.com/docs/cobrancas-via-cartao-de-credito
 - https://docs.asaas.com/docs/webhook-para-cobrancas
+
+## Preparação do Pix em produção — 19/10/2026 13:43 UTC
+
+A consulta autenticada ao Asaas de produção funcionou. Webhook encontrado, ativo e sem fila interrompida; a API não devolve o token para comparação. Não havia chave Pix ACTIVE. Faltavam três eventos de cartão/contestação (não impedem o fluxo Pix simples). O banco foi alinhado para production, mantendo enabled=false e sandbox_enabled=false. BILLING_RELEASE_APPROVED continua false. Nenhuma cobrança real foi emitida.
+
+Cartão em produção agora depende também de BILLING_CARD_APPROVED=true, separado da liberação geral. Enquanto não habilitado pelo Asaas, o frontend mostra somente Pix e o servidor rejeita cartão e não executa renovações de cartão. Falha ao consultar as modalidades mantém somente Pix.
+
+O diagnóstico billing-readiness aceita uma capacidade temporária exclusiva do servidor, de uso único, com finalidade explícita. Só consulta a API, não cria clientes, cobranças nem chaves; não retorna credenciais, chave Pix ou dados pessoais.
+
+Antes da primeira contratação: cadastrar/ativar uma chave Pix no Asaas, identificar o aluno pagador e validar o recebimento real do webhook. Só depois liberar as cobranças para os demais.

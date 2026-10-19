@@ -14,6 +14,8 @@ Deno.serve(async req=>{
   const profile:any=await checked(db.from('profiles').select('id,full_name,email,role,active').eq('id',user.id).single());
   if(!profile.active||profile.role!=='student')return reply({error:'forbidden'},403);
   const body=await req.json();
+  if(body.action==='capabilities')return reply({card_enabled:Deno.env.get('ASAAS_ENVIRONMENT')==='sandbox'||Deno.env.get('BILLING_CARD_APPROVED')==='true'});
+  if(body.method==='CREDIT_CARD'&&Deno.env.get('ASAAS_ENVIRONMENT')==='production'&&Deno.env.get('BILLING_CARD_APPROVED')!=='true')throw Error('card_not_available');
   if(body.action==='stop_auto_renew'){await checked(db.from('billing_accounts').update({auto_renew:false}).eq('student_id',user.id));return reply({success:true});}
   const settings:any=await checked(db.from('billing_settings').select('*').single());
   const account:any=await checked(db.from('billing_accounts').select('*').eq('student_id',user.id).maybeSingle());
@@ -23,5 +25,5 @@ Deno.serve(async req=>{
   if(Deno.env.get('ASAAS_ENVIRONMENT')!==settings.environment)throw Error('environment_mismatch');
   const asaas=asaasClient(settings.environment,Deno.env.get('ASAAS_API_KEY')||'');
   return reply(await createCharge(db,asaas,profile,account,settings,body));
- }catch(error){const code=error instanceof Error?error.message:'billing_unavailable';const allowed=['billing_disabled','billing_not_started','exempt','asaas_not_configured','environment_mismatch','invalid_cpf','invalid_method','existing_payment_method','order_requires_reconciliation','legacy_subscription_requires_review'];return reply({error:allowed.includes(code)?code:'billing_unavailable'},allowed.includes(code)?409:503);}
+ }catch(error){const code=error instanceof Error?error.message:'billing_unavailable';const allowed=['card_not_available','billing_disabled','billing_not_started','exempt','asaas_not_configured','environment_mismatch','invalid_cpf','invalid_method','existing_payment_method','order_requires_reconciliation','legacy_subscription_requires_review'];return reply({error:allowed.includes(code)?code:'billing_unavailable'},allowed.includes(code)?409:503);}
 });
