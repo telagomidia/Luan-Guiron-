@@ -25,5 +25,5 @@ Deno.serve(async req=>{
   if(Deno.env.get('ASAAS_ENVIRONMENT')!==settings.environment)throw Error('environment_mismatch');
   const asaas=asaasClient(settings.environment,Deno.env.get('ASAAS_API_KEY')||'');
   return reply(await createCharge(db,asaas,profile,account,settings,body));
- }catch(error){const code=error instanceof Error?error.message:'billing_unavailable';const allowed=['card_not_available','billing_disabled','billing_not_started','exempt','asaas_not_configured','environment_mismatch','invalid_cpf','invalid_method','existing_payment_method','order_requires_reconciliation','legacy_subscription_requires_review'];return reply({error:allowed.includes(code)?code:'billing_unavailable'},allowed.includes(code)?409:503);}
+ }catch(error){const code=error instanceof Error?error.message:'billing_unavailable';const allowed=['provider_mismatch','card_not_available','billing_disabled','billing_not_started','exempt','asaas_not_configured','environment_mismatch','invalid_cpf','invalid_method','existing_payment_method','order_requires_reconciliation','legacy_subscription_requires_review'];return reply({error:allowed.includes(code)?code:'billing_unavailable'},allowed.includes(code)?409:503);}
 });

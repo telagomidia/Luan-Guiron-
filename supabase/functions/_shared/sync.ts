@@ -10,7 +10,7 @@ export async function syncPayment(db:any,asaas:any,id:string,eventId:string,even
  if(/^[0-9a-f-]{36}$/i.test(p.externalReference||''))order=await checked(db.from('billing_orders').select('*').eq('id',p.externalReference).eq('student_id',account.student_id).maybeSingle());
  if(!order)order=await checked(db.from('billing_orders').select('*').eq('provider_id',p.id).eq('student_id',account.student_id).maybeSingle());
  if(!order)return {ignored:true,reason:'unmapped_order'};
- if(order.environment!==environment||cents(p.value)!==order.amount_cents)throw Error('payment_mismatch');
+ if(order.provider!=='asaas'||order.environment!==environment||cents(p.value)!==order.amount_cents)throw Error('payment_mismatch');
  if(eventName==='PAYMENT_CREDIT_CARD_CAPTURE_REFUSED')await checked(db.from('billing_attempts').update({status:'declined'}).eq('order_id',order.id).in('status',['reserved','unknown']));
  const state=p.deleted?'canceled':paymentState(p.status);
  // Keep full timestamp from the first verified confirmation. Later settlement must not add days.
