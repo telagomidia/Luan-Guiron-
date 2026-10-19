@@ -15,7 +15,7 @@ Deno.serve(async req=>{
   if(!claimed)return reply({skipped:true});
   const s:any=await checked(db.from('billing_settings').select('*').single());
   const sandbox=s.environment==='sandbox'&&s.sandbox_enabled;
-  const production=s.environment==='production'&&s.enabled&&s.starts_on&&today()>=s.starts_on&&Deno.env.get('BILLING_RELEASE_APPROVED')==='true';
+  const production=s.environment==='production'&&Deno.env.get('BILLING_CARD_APPROVED')==='true'&&s.enabled&&s.starts_on&&today()>=s.starts_on&&Deno.env.get('BILLING_RELEASE_APPROVED')==='true';
   if((!sandbox&&!production)||s.environment!==Deno.env.get('ASAAS_ENVIRONMENT'))return reply({disabled:true});
   const asaas=asaasClient(s.environment,Deno.env.get('ASAAS_API_KEY')||'');
   let q=db.from('billing_accounts').select('*').eq('enrolled',true).eq('auto_renew',true).eq('exempt',false).eq('environment',s.environment).lte('access_until',new Date().toISOString()).gte('access_until',new Date(Date.now()-6*86400000).toISOString()).limit(50);
