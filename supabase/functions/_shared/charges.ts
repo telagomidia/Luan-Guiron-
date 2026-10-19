@@ -11,7 +11,7 @@ export async function createCharge(db:any,asaas:any,profile:any,account:any,sett
  let existingQuery=db.from('billing_orders').select('*').eq('student_id',profile.id).eq('kind',kind).in('status',['creating','pending','overdue','review']).order('created_at',{ascending:false}).limit(1);
  if(kind==='assessment')existingQuery=existingQuery.eq('service_id',body.service_id);
  const existing:any=await checked(existingQuery.maybeSingle());
- if(existing){if(existing.method!==body.method)throw Error('existing_payment_method');if(existing.payment_url)return {url:paymentUrl(existing.payment_url),order_id:existing.id,reused:true};throw Error('order_requires_reconciliation');}
+ if(existing){if(existing.provider!=='asaas')throw Error('provider_mismatch');if(existing.method!==body.method)throw Error('existing_payment_method');if(existing.payment_url)return {url:paymentUrl(existing.payment_url),order_id:existing.id,reused:true};throw Error('order_requires_reconciliation');}
  if(!account?.asaas_customer_id&&!validCpf(body.cpf))throw Error('invalid_cpf');
  const start=today(),end=plusDays(start,31).slice(0,10);
  const order:any=await checked(db.from('billing_orders').insert({student_id:profile.id,kind,service_id:body.service_id||null,amount_cents:amount,method:body.method,period_start:start,period_end:end,environment:settings.environment,cycle_due_at:account?.access_until||new Date().toISOString(),auto_renew_consent:kind==='monthly'&&body.method==='CREDIT_CARD'&&body.auto_renew===true}).select().single());
