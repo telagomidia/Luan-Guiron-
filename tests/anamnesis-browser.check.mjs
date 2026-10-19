@@ -19,7 +19,7 @@ try{
    const profile={id:'qa',full_name:'Aluno sintético QA',role:'student',active:true};
    window.qa={writes:0,fail:true,savedAt:0};
    const api={profile:async()=>profile,plans:async()=>[],sessionsMonth:async()=>[],latestWorkout:async()=>null,sessions:async()=>[],assessments:async()=>[],anamnesis:async()=>({id:'qa-anam',student_id:'qa',training_goal:'Objetivo sintético QA',parq_answers:Object.fromEntries(Array.from({length:7},(_,i)=>['q'+(i+1),{answer:'no'}]))}),saveAnam:async()=>{qa.writes++;await new Promise(r=>setTimeout(r,150));if(qa.fail)throw new Error('Falha QA');await new Promise(resolve=>qa.confirmSave=resolve);qa.savedAt=performance.now();return{id:'qa-anam',student_id:'qa'};}};
-   window.LG_AUTH={createClient:()=>({}),access:async()=>({user:{id:'qa'},profile}),sessionExpired:()=>false,message:()=> 'Falha QA'};
+   window.LG_AUTH={createClient:()=>({rpc:async()=>({data:{allowed:true}})}),access:async()=>({user:{id:'qa'},profile}),sessionExpired:()=>false,message:()=> 'Falha QA'};
    window.LG_PORTAL={...LG_PORTAL,createApi:()=>api};
   });
   await page.addScriptTag({content:read('portal-app.js')});await page.locator('[data-page="home"]').waitFor({state:'attached'});if(width<=850)await page.locator('#portalMenuToggle').click();await page.locator('[data-page="anamnesis"]').click();await page.locator('[name="reviewed"]').check();

@@ -21,6 +21,7 @@ try{
    const now=new Date().toISOString();
    window.qa={fail:true,attempts:[],sessions:[{id:'old',workout_id:'a',performed_at:now,workouts:{name:'Treino A'}}],sets:{old:[]},calendarFail:false};
    const client={rpc(name,payload){
+    if(name==='billing_access_status')return Promise.resolve({data:{allowed:true}});
     qa.attempts.push({name,payload});
     return {abortSignal(){return this;},async then(resolve,reject){
      await new Promise(r=>setTimeout(r,150));
