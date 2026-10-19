@@ -4,6 +4,7 @@ export function renewalDecision({account,order,payment,attempts=[],now=Date.now(
  const day=retryDay(account.access_until,now);
  if(day===null)return {action:'skip'};
  if(order&&(order.method!=='CREDIT_CARD'||!['pending','overdue'].includes(order.status)))return {action:'skip'};
+ if(payment?.billingType&&payment.billingType!=='CREDIT_CARD')return {action:'skip'};
  if(payment&&(payment.deleted||!['pending','overdue'].includes(paymentState(payment.status))))return {action:'reconcile'};
  if(attempts.some(a=>a.status==='reserved'||a.status==='unknown'))return {action:'reconcile'};
  if(attempts.some(a=>a.attempt_day===day))return {action:'skip'};

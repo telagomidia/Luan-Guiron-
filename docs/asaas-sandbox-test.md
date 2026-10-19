@@ -1,4 +1,30 @@
-# Homologação isolada Asaas — 18/10/2026
+# Homologação Asaas — 19/10/2026
+
+## Atualização após autorização do proprietário
+
+A autorização explícita para alterar permissões e o webhook principal foi recebida em 19/10/2026. As limitações descritas na seção histórica abaixo foram superadas por essa autorização. Foram aplicados os campos de validade, a função transacional de pagamentos, RLS restritiva nas 16 tabelas do acompanhamento e no Storage protegido, e a tolerância fixa de cinco dias. A autenticação e o financeiro continuam acessíveis. O portal consulta o estado ao entrar, voltar à aba e a cada 45 segundos.
+
+O webhook principal foi atualizado, autenticado e configurado para confirmação, recebimento, atraso, recusa, exclusão, estorno e contestação. Eventos de clientes externos à integração são reconhecidos sem conceder acesso. Pagamentos são consultados na API antes de registrar crédito; eventos repetidos e liquidação posterior não somam dias novamente.
+
+A renovação usa cobranças avulsas de 31 dias, não assinatura MONTHLY. O preço contratado é preservado; alterações do professor valem para novas contratações. A renovação automática exige consentimento, guarda somente token vinculado ao mesmo cliente em tabela exclusiva do servidor, e pode ser desativada pelo aluno. O worker é acionado a cada cinco minutos, com capacidades temporárias cujo hash fica no banco. Há reserva única por cobrança/dia (D0–D5), consulta canônica antes da tentativa e parada em Pix, pagamento, isenção ou desativação. Respostas inconclusivas ficam em análise até confirmação ou recusa definitiva, sem repetição cega.
+
+Validações: 283 testes Node; DOM do financeiro, do portal restrito/restaurado e dos fluxos existentes; CI Chromium em celular e desktop; SQL transacional comprova renovação antecipada de 62 dias, deduplicação, restrição após tolerância e preservação de perfil/financeiro. Nenhum teste SQL permaneceu nos alunos existentes.
+
+Cobranças reais continuam desativadas (`enabled=false`, ambiente Sandbox). Maísa e Lucas permanecem isentos; Catherine deverá ser vinculada manualmente ao cadastro correto. Avaliações continuam sem modalidades.
+
+## Resultado integrado da execução autorizada
+
+- Perfil sintético exclusivo, sem aluno real: `f5d3d92a-deb4-479e-9549-984b3a9a7d7e`.
+- Pix de R$60: `pay_g1mtye8govyaaa48`; renovação antecipada: `pay_hv515xobd6vms62s`.
+- Cartão fictício aprovado: `pay_hogjr3612d9pv1jb`, status CONFIRMED; token retornado e guardado apenas no servidor.
+- Renovação pelo worker com esse token: `pay_e379j7e1dh8hr4y0`, uma tentativa D0, status paid/confirmed.
+- Eventos automáticos recebidos pelo receptor principal: PAYMENT_CREATED (`evt_05b708f961d739ea7eba7e4db318f621&22675150`) e PAYMENT_CONFIRMED (`evt_15e444ff9b9ab9ec29294aa1abe68025&22675171`).
+- Para provar a entrega imediata, foi usada uma configuração temporária apontando ao mesmo receptor principal com identificador de teste na query string. A configuração original foi atualizada e permaneceu ativa; a temporária foi desativada após o teste. As três primeiras confirmações foram verificadas também por requisições autenticadas de teste ao receptor, sempre consultando o estado real na API do Sandbox.
+- O teste é encerrado desativando o modo Sandbox, renovação e perfil sintético e expirando a capacidade. Não reutilizar a capacidade nem expor o token.
+- A recusa e os cinco dias seguintes foram testados com relógio simulado; o teste de integração aprovou o cartão fictício e a renovação D0. Os cinco dias reais não foram aguardados.
+
+## Histórico do primeiro teste isolado
+
 
 ## Resultado comprovado
 
@@ -19,7 +45,7 @@ As tabelas `billing_sandbox_runs` e `billing_sandbox_events` são exclusivas do 
 
 O webhook original não foi substituído, removido ou desativado. Um webhook adicional foi criado para o receptor de teste. Depois da validação, o webhook adicional foi desativado e a capacidade de execução encerrada. Eventos desta cobrança também podem aparecer na fila do webhook original, que ainda não reconhece referências `sandbox-run:`; não interpretar falhas desse receptor antigo como falha do receptor isolado.
 
-## Limites e trabalho bloqueado
+## Limites históricos antes da autorização
 
 A revisão automática rejeitou a migração ampla que alteraria políticas de acesso nas tabelas existentes, comportamento financeiro e armazenamento de tokens de cartão. Também rejeitou substituir o webhook ativo e a tentativa de pausar temporariamente sua configuração. Essas operações não foram executadas. O caminho final de homologação não modifica o webhook original.
 

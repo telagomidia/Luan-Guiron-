@@ -32,7 +32,7 @@ Deno.serve(async req=>{
   const sid=job.result.student_id;if(!sid)throw Error('test_not_prepared');
   const a:any=await checked(db.from('billing_accounts').select('*').eq('student_id',sid).eq('is_test',true).single());
   if(body.action==='test_hook'){
-   const hooks=await asaas('/webhooks?limit=100');const hook=await asaas('/webhooks','POST',{name:'Teste temporario do receptor principal '+job.id.slice(0,8),url:Deno.env.get('SUPABASE_URL')+'/functions/v1/asaas-webhook',email:hooks.data[0].email,enabled:true,interrupted:false,apiVersion:3,authToken:Deno.env.get('ASAAS_WEBHOOK_TOKEN'),sendType:'SEQUENTIALLY',events:['PAYMENT_CREATED','PAYMENT_CONFIRMED','PAYMENT_RECEIVED','PAYMENT_CREDIT_CARD_CAPTURE_REFUSED']});
+   const hooks=await asaas('/webhooks?limit=100');const hook=await asaas('/webhooks','POST',{name:'Teste temporario do receptor principal '+job.id.slice(0,8),url:Deno.env.get('SUPABASE_URL')+'/functions/v1/asaas-webhook?test_run='+job.id,email:hooks.data[0].email,enabled:true,interrupted:false,apiVersion:3,authToken:Deno.env.get('ASAAS_WEBHOOK_TOKEN'),sendType:'SEQUENTIALLY',events:['PAYMENT_CREATED','PAYMENT_CONFIRMED','PAYMENT_RECEIVED','PAYMENT_CREDIT_CARD_CAPTURE_REFUSED']});
    await checked(db.from('billing_jobs').update({result:{...job.result,test_hook_id:hook.id}}).eq('id',job.id));return reply({test_hook:true});
   }
   if(body.action==='pay_card'){
