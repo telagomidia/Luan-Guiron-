@@ -24,6 +24,7 @@ records=[row,{...row,id:'old-qa',updated_at:'2026-09-01T12:00:00Z'}];await w.go(
 assert.equal(view.querySelector('[data-anam-student]').type,'button');view.querySelector('[data-anam-student]').click();await settle();
 assert.equal(w.document.querySelector('#modal').open,true);assert.match(w.document.querySelector('#form').textContent,/Objetivo sintético/);w.document.querySelector('#anamModalPdf').click();assert.equal(exports,1);w.document.querySelector('#modal').close();
 records=[];await w.go('Anamneses');assert.match(view.textContent,/Nenhuma anamnese/);assert.equal(view.querySelector('[data-anam-student]'),null);
+assert.match(view.textContent,/Aguardando envio \(1\)/);assert.equal(view.querySelectorAll('[data-pending-student]').length,1);let opened;w.openStudentHub=id=>opened=id;view.querySelector('[data-pending-student]').click();assert.equal(opened,student.id);
 failure=true;await w.go('Anamneses');assert.match(view.textContent,/Erro ao carregar/);failure=false;records=[row];await w.go('Anamneses');assert.ok(view.querySelector('[data-anam-student]'));
 console.log('PASS: actual Anamneses route, strict real-schema ordering, escaped student name, view report/PDF, empty list and query failure/retry');
 await w.happyDOM.close();
