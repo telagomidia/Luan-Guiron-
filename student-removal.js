@@ -6,6 +6,7 @@
   const style = document.createElement('style');
   style.textContent = '.student-delete{color:var(--danger)!important;border-color:var(--danger)!important}.student-removal-options{display:grid;gap:12px;margin:20px 0}.student-removal-options button{white-space:normal;text-align:left;padding:16px}.student-removal-options small{display:block;margin-top:8px;font-weight:400;line-height:1.5}.student-removal-status{min-height:1.5em}.student-removal-submit:disabled{opacity:.5;cursor:not-allowed}.student-removal-dialog .actions{flex-wrap:wrap}.student-removal-dialog .actions button{white-space:normal;max-width:100%}.student-removal-dialog p{overflow-wrap:anywhere}.student-card>div{min-width:0}.student-card .muted{overflow-wrap:anywhere}';
   document.head.appendChild(style);
+  style.textContent += '.student-removal-dialog .primary.student-delete{background:#6b1919;color:#fff!important;border:1px solid var(--danger)}';
 
   async function failure(result, fallback) {
     if (result.error) {
