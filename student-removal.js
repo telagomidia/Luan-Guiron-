@@ -102,6 +102,7 @@
   let listTicket = 0, refreshTimer;
   window.alunos = async function() {
     const ticket = ++listTicket;
+    const initialPage = document.querySelector('#nav .active')?.dataset.page;
     clearTimeout(refreshTimer);
     await loadStudents();
     const [archivesResult, anam, assessments, plans] = await Promise.all([
@@ -111,7 +112,8 @@
       sb.from('training_plans').select('student_id,active').eq('active',true)
     ]);
     for (const result of [archivesResult,anam,assessments,plans]) await failure(result, 'Não foi possível carregar a lista. Reabra a aba Alunos.');
-    if (ticket !== listTicket || !document.querySelector('#nav [data-page="Alunos"].active')) return;
+    if (ticket !== listTicket || document.querySelector('#nav .active')?.dataset.page !== initialPage) return;
+    document.querySelectorAll('#nav [data-page]').forEach(button => button.classList.toggle('active',button.dataset.page === 'Alunos'));
     const archives = new Map((archivesResult.data || []).map(row => [row.student_id,row.hidden_until]));
     const allStudents = [...students];
     const withAnam = new Set((anam.data || []).map(row => row.student_id));

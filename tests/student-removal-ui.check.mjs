@@ -52,7 +52,9 @@ assert.equal(calls.filter(call=>call.name==='delete-student').length,2); // one 
 assert.equal(calls.at(-1).body.confirmation,'excluir permanentemente');
 // Expiration is re-evaluated on redraw, without changing the profile.
 archives.set('s2',new Date(Date.now()+40).toISOString());await w.alunos();await new Promise(resolve=>setTimeout(resolve,150));assert.equal(w.document.querySelectorAll('.student-card').length,2);
+// Explicit list navigation also works after creating a student on Dashboard.
+w.document.querySelector('#nav button').dataset.page='Dashboard';await w.alunos();assert.ok(w.document.querySelector('#studentList'));
 // A late response cannot replace another navigation target.
-w.document.querySelector('#nav button').className='';w.view.innerHTML='<h1>Outra tela</h1>';await w.alunos();assert.equal(w.view.textContent,'Outra tela');
+const late=w.alunos();w.document.querySelector('#nav button').dataset.page='Treinos';w.document.querySelector('#nav button').className='active';w.view.innerHTML='<h1>Outra tela</h1>';await late;assert.equal(w.view.textContent,'Outra tela');
 await w.happyDOM.close();
 console.log('PASS: visible/hidden lists, expiry, restore, escaping, duration validation, confirmation, errors, double-click and navigation guards');
