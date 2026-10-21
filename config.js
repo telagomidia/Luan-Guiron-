@@ -7,4 +7,4 @@ window.LG_URLS={
   portal:()=> 'https://luanguiron.com.br/portal',
   isAdmin:(pathname=location.pathname)=>/\/admin(?:\.html)?\/?$/.test(pathname)
 };
-if(LG_URLS.isAdmin()){window.addEventListener('load',async()=>{for(const src of ['./student-management.js?v=9','./student-alerts.js?v=1','./training-import.js?v=2','./training-pdf.js?v=1','./plan-management.js?v=2','./training-ui.js?v=2','./training-context.js?v=1','./training-context-ui.js?v=1','./student-access.js?v=2'])await new Promise(ok=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=ok;document.body.appendChild(s)})})}
+if(LG_URLS.isAdmin()){window.addEventListener('load',async()=>{for(const src of ['./student-management.js?v=9','./student-removal.js?v=1','./student-alerts.js?v=1','./training-import.js?v=2','./training-pdf.js?v=1','./plan-management.js?v=2','./training-ui.js?v=2','./training-context.js?v=1','./training-context-ui.js?v=1','./student-access.js?v=2'])await new Promise(ok=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=ok;document.body.appendChild(s)})})}
