@@ -14,9 +14,10 @@ export function studentAdministrationHandler({caller,admin,action}){
    if(trainer.error||trainer.data?.role!=='trainer'||trainer.data.active!==true)return reply({error:'Apenas o professor ativo pode gerenciar alunos.'},403);
    const raw=await req.text();if(raw.length>20000)return reply({error:'Dados muito grandes.'},400);let body;try{body=JSON.parse(raw);}catch{return reply({error:'Dados inválidos.'},400);}if(!body||typeof body!=='object'||Array.isArray(body))return reply({error:'Dados inválidos.'},400);
    if(action==='delete'){
+    if(body.confirmation!=='excluir permanentemente')return reply({error:'Digite excluir permanentemente para confirmar.'},400);
     const id=body.id;if(typeof id!=='string'||! /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)||id===identity.data.user.id)return reply({error:'Selecione um aluno válido.'},400);
     const student=await admin.from('profiles').select('role').eq('id',id).maybeSingle();if(student.error||student.data?.role!=='student')return reply({error:'Perfil de aluno não encontrado.'},404);
-    const deleted=await admin.auth.admin.deleteUser(id);if(deleted.error)return reply({error:'Não foi possível excluir o aluno. Verifique vínculos e arquivos antes de tentar novamente.'},400);return reply({ok:true});
+    const deleted=await admin.auth.admin.deleteUser(id);if(deleted.error)return reply({error:'A exclusão foi impedida por vínculos financeiros ou arquivos. Use a exclusão temporária para retirar o aluno da lista e revise os vínculos antes de excluir permanentemente.'},409);return reply({ok:true});
    }
    if(action!=='create')return reply({error:'Operação inválida.'},400);
    const text=(field,max)=>{const v=body[field];if(v==null||v==='')return null;if(typeof v!=='string'||v.length>max)throw new Error('invalid_field');return v.trim()||null;};
