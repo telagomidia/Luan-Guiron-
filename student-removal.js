@@ -4,7 +4,7 @@
   const hidden = (archives, id, now = Date.now()) => Date.parse(archives.get(id) || '') > now;
   const date = value => new Date(value).toLocaleString('pt-BR');
   const style = document.createElement('style');
-  style.textContent = '.student-delete{color:var(--danger)!important;border-color:var(--danger)!important}.student-removal-options{display:grid;gap:12px;margin:20px 0}.student-removal-options button{white-space:normal;text-align:left;padding:16px}.student-removal-options small{display:block;margin-top:8px;font-weight:400;line-height:1.5}.student-removal-status{min-height:1.5em}.student-removal-submit:disabled{opacity:.5;cursor:not-allowed}.student-card>div{min-width:0}.student-card .muted{overflow-wrap:anywhere}';
+  style.textContent = '.student-delete{color:var(--danger)!important;border-color:var(--danger)!important}.student-removal-options{display:grid;gap:12px;margin:20px 0}.student-removal-options button{white-space:normal;text-align:left;padding:16px}.student-removal-options small{display:block;margin-top:8px;font-weight:400;line-height:1.5}.student-removal-status{min-height:1.5em}.student-removal-submit:disabled{opacity:.5;cursor:not-allowed}.student-removal-dialog .actions{flex-wrap:wrap}.student-removal-dialog .actions button{white-space:normal;max-width:100%}.student-removal-dialog p{overflow-wrap:anywhere}.student-card>div{min-width:0}.student-card .muted{overflow-wrap:anywhere}';
   document.head.appendChild(style);
 
   async function failure(result, fallback) {
@@ -22,6 +22,7 @@
     if (removalDialog?.open) return null;
     removalDialog?.remove();
     const element = document.createElement('dialog');
+    element.className = 'student-removal-dialog';
     element.setAttribute('aria-labelledby', 'studentRemovalTitle');
     element.innerHTML = '<div class="modal"><div class="modalhead"><h2 id="studentRemovalTitle">Excluir aluno</h2><button type="button" class="ghost" data-close>Fechar</button></div><p><strong>'+esc(student.full_name)+'</strong><br>'+esc(student.email || 'Sem e-mail')+'</p><div data-content></div><p class="student-removal-status" role="status" aria-live="polite"></p></div>';
     element.querySelector('[data-close]').onclick = () => element.close();
