@@ -18,7 +18,7 @@ try{
    if(!/^[\w./-]+$/.test(f)||f.includes('..')||!fs.existsSync(root+f))return r.abort();
    return r.fulfill({contentType:f.endsWith('.css')?'text/css':f.endsWith('.webp')?'image/webp':'text/html',body:f==='portal.html'?read(f).toString().replace(/<script\b[\s\S]*?<\/script>/gi,''):read(f)});
   });
-  await page.goto('http://portal.test/portal.html');
+  await page.goto('https://portal.test/portal.html');
   await page.evaluate(()=>{
    const profile={id:'qa',role:'student',full_name:'Lucas Teste',email:'qa@example.invalid'};
    window.LG_AUTH={createClient:()=>({rpc:async()=>({data:{allowed:true}})}),access:async()=>({user:{id:'qa'},profile}),sessionExpired:()=>false,message:()=> 'Falha'};
