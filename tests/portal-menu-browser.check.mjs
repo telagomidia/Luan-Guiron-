@@ -18,11 +18,11 @@ try{
    if(!/^[\w./-]+$/.test(f)||f.includes('..')||!fs.existsSync(root+f))return r.abort();
    return r.fulfill({contentType:f.endsWith('.css')?'text/css':f.endsWith('.webp')?'image/webp':'text/html',body:f==='portal.html'?read(f).toString().replace(/<script\b[\s\S]*?<\/script>/gi,''):read(f)});
   });
-  await page.goto('http://portal.test/portal.html');
+  await page.goto('https://portal.test/portal.html');
   await page.evaluate(()=>{
    const profile={id:'qa',role:'student',full_name:'Lucas Teste',email:'qa@example.invalid'};
    window.LG_AUTH={createClient:()=>({rpc:async()=>({data:{allowed:true}})}),access:async()=>({user:{id:'qa'},profile}),sessionExpired:()=>false,message:()=> 'Falha'};
-   window.qaApi={profile:async()=>profile,plans:async()=>[{id:'plan',active:true,name:'Bloco inicial — adaptação técnica, hipertrofia e recomposição corporal',goal:'Hipertrofia com ênfase em peito, ombros, costas e braços.'}],sessionsMonth:async()=>[],latestWorkout:async()=>null,sessions:async()=>[],assessments:async()=>[],anamnesis:async()=>null,guidance:async()=>[]};
+   window.qaApi={profile:async()=>profile,plans:async()=>[{id:'plan',active:true,name:'Bloco inicial — adaptação técnica, hipertrofia e recomposição corporal',goal:'Hipertrofia com ênfase em peito, ombros, costas e braços.'}],sessionsMonth:async()=>[],latestWorkout:async()=>null,sessions:async()=>[],assessments:async()=>[],anamnesis:async()=>({id:'completed-anamnesis'}),guidance:async()=>[]};
   });
   for(const f of ['workout-journal.js','anamnesis-schema.js','portal-model.js','portal-views.js'])await page.addScriptTag({content:read(f).toString()});
   await page.evaluate(()=>window.LG_PORTAL={...LG_PORTAL,createApi:()=>qaApi});
@@ -30,6 +30,13 @@ try{
   await page.locator('.training-focus').waitFor();
   const toggle=page.locator('#portalMenuToggle'),nav=page.locator('#studentNav');
   const fits=async()=>assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'No horizontal overflow @'+width);
+  // Onboarding for a missing anamnesis is tested in the actual portal at every width.
+  await page.evaluate(()=>{window.qaApi.anamnesis=async()=>null;document.querySelector('[data-page="home"]').click();});
+  await page.locator('.registration-needed').waitFor();
+  assert.match(await page.locator('.registration-needed').textContent(),/Finalize seu cadastro/);await fits();
+  await page.locator('#finishRegistration').click();await page.locator('#anamForm').waitFor();
+  await page.evaluate(()=>{window.qaApi.anamnesis=async()=>({id:'completed-anamnesis'});document.querySelector('[data-page="home"]').click();});
+  await page.locator('.training-focus').waitFor();assert.equal(await page.locator('.registration-needed').count(),0);
   await fits();
   assert.notEqual(await page.locator('.training-focus').evaluate(e=>getComputedStyle(e).boxShadow),'none');
   if(width<=850){

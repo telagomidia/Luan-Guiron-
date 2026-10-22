@@ -29,6 +29,7 @@ const click=async s=>{one(s).click();await settle();};
 const route=async page=>click('[data-page="'+page+'"]');
 const fill=(s,value)=>{one(s).value=value;one(s).dispatchEvent(new window.Event('input',{bubbles:true}));};
 await settle();assert.match(one('#content').textContent,/Olá, Aluno/);
+assert.equal(one('.registration-needed').open,true);assert.match(one('.registration-needed').textContent,/Finalize seu cadastro/);await click('#finishRegistration');assert.equal(window.location.hash,'#anamnesis');assert.ok(one('#anamForm'));await route('home');assert.equal(doc.querySelector('.registration-needed'),null,'Prompt does not repeat while editing in the same login');
 assert.ok(one('.training-focus').compareDocumentPosition(one('.stats')) & 4,'Training precedes metrics');
 await click('#portalMenuToggle');assert.equal(one('#portalMenuToggle').getAttribute('aria-expanded'),'true');
 assert.equal(doc.querySelectorAll('#studentNav [data-page]').length,9);assert.equal(doc.querySelector('#portalMore'),null);
