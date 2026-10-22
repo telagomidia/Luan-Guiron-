@@ -4,6 +4,7 @@
  const content=document.querySelector('#content'),nav=document.querySelector('#studentNav');
  const routes=[['home','Início'],['training','Meu treino'],['history','Histórico'],['assessments','Avaliações'],['progress','Evolução'],['anamnesis','Anamnese'],['guidance','Orientações'],['billing','Plano e pagamentos'],['profile','Perfil']];
  let paymentOnly=true;
+ let registrationPrompted=false;
  let client,api,profile,route='home',revision=0,busy=false,dirty=false,timer=null,timerEnd=0,timerStatus='idle',timerRemaining=0,timerElapsed=0,timerRunStarted=0,timerRow=null,timerName='',audioContext=null;
  const menuToggle=document.querySelector('#portalMenuToggle');
  function setMenu(open,restoreFocus=false){
@@ -53,6 +54,15 @@
    const leave=()=>finish(false),timeout=setTimeout(()=>finish(true),3000);window.addEventListener('pagehide',leave,{once:true});
   });
  }
+ function finishRegistrationPrompt(rev){
+  if(registrationPrompted||paymentOnly||rev!==revision)return;
+  registrationPrompted=true;
+  const dialog=document.createElement('dialog');dialog.className='anam-saved registration-needed';dialog.setAttribute('aria-labelledby','registrationNeededTitle');dialog.setAttribute('aria-describedby','registrationNeededMessage');
+  dialog.innerHTML='<h2 id="registrationNeededTitle">Finalize seu cadastro</h2><p id="registrationNeededMessage">Falta preencher e enviar sua anamnese para o professor conhecer seus objetivos e preparar seu acompanhamento.</p><button type="button" class="primary" id="finishRegistration" style="margin-top:22px">Terminar cadastro</button>';
+  dialog.addEventListener('cancel',event=>event.preventDefault());
+  dialog.querySelector('button').onclick=()=>{dialog.close();dialog.remove();navigate('anamnesis',true);};
+  document.body.appendChild(dialog);dialog.showModal();
+ }
  function bindForm(form,operation,after){
   let committed=false;
   form.oninput=form.onchange=()=>{dirty=true;form.dataset.dirty='true';committed=false;};
@@ -76,6 +86,7 @@
   const current=plans.filter(active),last=sessions[0],a=assessments[0];
   content.innerHTML=heading('Olá, '+(profile.full_name.split(' ')[0]||'aluno')+'.','Seu próximo passo começa aqui.')+'<section class="training-focus"><div><span class="ey">Seu treino</span><h2>'+E(current[0]?.name||'Seu próximo plano')+'</h2><p>'+E(current[0]?.goal||'Seu professor ainda não liberou um plano ativo.')+'</p></div>'+button(current.length?'Começar treino':'Ver meus planos','data-route="training"',true)+'</section>'+(anam?'':'<section class="onboarding-note"><div><strong>Complete sua anamnese</strong><p class="muted">Conte sua rotina e seus objetivos para orientar o acompanhamento.</p></div>'+button('Preencher anamnese','data-route="anamnesis"')+'</section>')+'<section class="panel journal-calendar-panel" id="trainingCalendar" aria-label="Calendário de treinos"><h2>Meu calendário</h2><div id="calendarBody" role="status">Carregando registros...</div></section><div class="stats"><div class="panel stat"><strong>'+current.length+'</strong><span>Plano(s) ativo(s)</span></div><div class="panel stat"><strong>'+(last?D(last.performed_at):'Ainda sem registro')+'</strong><span>Última sessão registrada</span></div><div class="panel stat"><strong>'+(a?D(a.assessed_at):'Aguardando avaliação')+'</strong><span>Última avaliação</span></div></div><h2 class="section-title">Seu acompanhamento</h2><div class="companion-grid"><article class="card"><h3>Minha evolução</h3><p>Compare suas avaliações e fotos ao longo do tempo.</p>'+button('Ver evolução','data-route="progress"')+'</article><article class="card"><h3>Orientações do professor</h3><p>Consulte as recomendações preparadas para você.</p>'+button('Ler orientações','data-route="guidance"')+'</article></div><p class="small">O histórico mostra apenas sessões que você registrou no sistema.</p>';
   mountCalendar(rev);
+  if(!anam)finishRegistrationPrompt(rev);
  }
  function mountCalendar(rev){
   const holder=content.querySelector('#calendarBody');if(!holder)return;
