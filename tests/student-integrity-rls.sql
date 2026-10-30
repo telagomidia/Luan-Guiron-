@@ -1,0 +1,25 @@
+BEGIN;
+INSERT INTO auth.users(id,email,raw_user_meta_data) VALUES('66666666-0000-4000-8000-000000000001','integrity@example.invalid','{"full_name":"Integrity QA"}');
+INSERT INTO public.training_plans(id,student_id,name,active,created_by) VALUES('66666666-0000-4000-8000-000000000010','66666666-0000-4000-8000-000000000001','QA',true,'66666666-0000-4000-8000-000000000001');
+INSERT INTO public.workouts(id,plan_id,name,position) VALUES('66666666-0000-4000-8000-000000000020','66666666-0000-4000-8000-000000000010','Real workout',1);
+INSERT INTO public.workout_exercises(id,workout_id,exercise_name,position) VALUES('66666666-0000-4000-8000-000000000030','66666666-0000-4000-8000-000000000020','Real exercise',1);
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claims','{"sub":"66666666-0000-4000-8000-000000000001","role":"authenticated"}',true);
+INSERT INTO public.workout_sessions(id,student_id,workout_id,workout_snapshot) VALUES('66666666-0000-4000-8000-000000000040','66666666-0000-4000-8000-000000000001','66666666-0000-4000-8000-000000000020','{"name":"Forged"}');
+DO $$ DECLARE sid uuid='66666666-0000-4000-8000-000000000040'; eid uuid='66666666-0000-4000-8000-000000000030'; BEGIN
+ IF (SELECT workout_snapshot->>'name' FROM public.workout_sessions WHERE id=sid)<>'Real workout' THEN RAISE EXCEPTION 'Forged snapshot'; END IF;
+ UPDATE public.workout_sessions SET workout_snapshot='{"name":"Forged again"}' WHERE id=sid;
+ IF (SELECT workout_snapshot->>'name' FROM public.workout_sessions WHERE id=sid)<>'Real workout' THEN RAISE EXCEPTION 'Snapshot changed'; END IF;
+ BEGIN INSERT INTO public.exercise_sets(session_id,exercise_id,set_number,reps,load_kg) VALUES(sid,eid,1,10,-1); RAISE EXCEPTION 'Negative load accepted' USING ERRCODE='ZX001'; EXCEPTION WHEN check_violation THEN NULL; END;
+ BEGIN INSERT INTO public.exercise_sets(session_id,exercise_id,set_number,reps) VALUES(sid,eid,1,-1); RAISE EXCEPTION 'Negative reps accepted' USING ERRCODE='ZX001'; EXCEPTION WHEN check_violation THEN NULL; END;
+ BEGIN INSERT INTO public.exercise_sets(session_id,exercise_id,set_number,reps,rir) VALUES(sid,eid,1,10,11); RAISE EXCEPTION 'RIR accepted' USING ERRCODE='ZX001'; EXCEPTION WHEN check_violation THEN NULL; END;
+ BEGIN INSERT INTO public.anamneses(student_id,sleep_hours) VALUES(auth.uid(),25); RAISE EXCEPTION 'Sleep accepted' USING ERRCODE='ZX001'; EXCEPTION WHEN check_violation THEN NULL; END;
+ BEGIN INSERT INTO public.anamneses(student_id,answers) VALUES(auth.uid(),'{"sleep_hours":25}'); RAISE EXCEPTION 'JSON sleep accepted' USING ERRCODE='ZX001'; EXCEPTION WHEN check_violation THEN NULL; END;
+ BEGIN INSERT INTO public.anamneses(student_id,answers) VALUES(auth.uid(),jsonb_build_object('long',repeat('x',200001))); RAISE EXCEPTION 'Oversized answers accepted' USING ERRCODE='ZX001'; EXCEPTION WHEN check_violation THEN NULL; END;
+ INSERT INTO public.exercise_sets(session_id,exercise_id,set_number,reps,load_kg,rir) VALUES(sid,eid,1,10,0,0);
+ BEGIN INSERT INTO public.exercise_sets(session_id,exercise_id,set_number,reps) VALUES(sid,eid,1,10); RAISE EXCEPTION 'Duplicate set accepted' USING ERRCODE='ZX001'; EXCEPTION WHEN unique_violation THEN NULL; END;
+ BEGIN INSERT INTO public.anamneses(student_id,parq_answers) VALUES(auth.uid(),'{"q1":{"answer":"not-a-choice"}}'); RAISE EXCEPTION 'Invalid PAR-Q accepted' USING ERRCODE='ZX001'; EXCEPTION WHEN check_violation THEN NULL; END;
+ INSERT INTO public.anamneses(student_id,sleep_hours,answers) VALUES(auth.uid(),8,'{"sleep_hours":8,"water_liters":2}');
+END $$;
+RESET ROLE;
+ROLLBACK;

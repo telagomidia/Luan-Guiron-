@@ -48,6 +48,7 @@
   }
   function message(error) {
     const code = error?.code;
+    if (code === 'weak_password' || error?.name === 'AuthWeakPasswordError') return 'Escolha uma senha mais forte. Combine letras, números e símbolos e evite senhas comuns. Depois, tente cadastrar novamente.';
     if (code === 'invalid_credentials') return 'E-mail ou senha incorretos. Confira os dados e tente novamente.';
     if (code === 'email_not_confirmed') return 'Confirme seu e-mail pelo link recebido antes de entrar.';
     if (error?.status === 429 || code === 'over_request_rate_limit') return 'Muitas tentativas. Aguarde alguns minutos antes de tentar novamente.';

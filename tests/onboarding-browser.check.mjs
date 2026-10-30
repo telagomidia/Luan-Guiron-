@@ -12,7 +12,7 @@ try{
   await page.addInitScript(mode=>{window.addEventListener('DOMContentLoaded',()=>{window.ONBOARDING_QA.mode=mode;});},mode);
   await page.route('**/*',route=>{
    const url=new URL(route.request().url()),file=url.pathname.slice(1)||'cadastro.html';
-   if(url.hostname!=='onboarding.test')return route.fulfill({status:200,body:''});
+   if(url.hostname!=='onboarding.test'||file==='public/vendor/supabase-2.57.4.js')return route.fulfill({status:200,contentType:'application/javascript',body:''});
    if(!/^[\w./-]+$/.test(file)||file.includes('..'))return route.abort();
    const contentType=file.endsWith('.js')?'application/javascript':file.endsWith('.css')?'text/css':file.endsWith('.webp')?'image/webp':'text/html';
    return route.fulfill({status:200,contentType,body:fs.readFileSync(root+file)});

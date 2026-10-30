@@ -27,6 +27,7 @@ w.sb=client;w.view=w.document.querySelector('#view');w.students=records;w.me={id
 w.loadStudents=async()=>records;w.esc=value=>String(value||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 w.toast=()=>{};w.copyStudentSignupLink=()=>{};w.openStudentHub=()=>{};w.studentForm=()=>{};
 w.eval(fs.readFileSync(new URL('../student-removal.js',import.meta.url),'utf8'));
+w.alunos=(...args)=>w.LG_STUDENTS.list(...args);w.deleteStudent=(...args)=>w.LG_STUDENTS.remove(...args);
 const settle=async()=>{for(let i=0;i<12;i++)await new Promise(resolve=>setTimeout(resolve,0));};
 const click=selector=>w.document.querySelector(selector).click();
 const input=(selector,value)=>{const field=w.document.querySelector(selector);field.value=value;field.dispatchEvent(new w.Event('input'));};
@@ -43,12 +44,19 @@ for(const bad of ['0','-1','1.5','3651','']){input('#studentHideDays',bad);asser
 input('#studentHideDays','7');click('[data-save]');await settle();
 assert.equal(calls[0].body.p_days,7);assert.equal(w.document.querySelectorAll('.student-card').length,2);assert.equal(records[0].active,true);
 // Failure leaves dialog open with feedback and no false success.
-w.deleteStudent('s2');click('[data-temporary]');fail=true;click('[data-save]');await settle();assert.equal(w.document.querySelector('dialog').open,true);assert.match(w.document.querySelector('dialog [role="status"]').textContent,/Não foi possível/);click('[data-cancel]');fail=false;
+w.deleteStudent('s2');click('[data-temporary]');fail=true;click('[data-save]');await settle();assert.equal(w.document.querySelector('dialog').open,true);assert.match(w.document.querySelector('dialog [role="status"]').textContent,/Não foi possível/);click('[data-close]');fail=false;
 w.deleteStudent('s1');click('[data-permanent]');
 for(const bad of ['excluir','EXCLUIR PERMANENTEMENTE','excluir permanentemente ']){input('#studentDeleteConfirmation',bad);assert.equal(w.document.querySelector('[data-save]').disabled,true);}
 input('#studentDeleteConfirmation','excluir permanentemente');fail=true;click('[data-save]');await settle();assert.match(w.document.querySelector('dialog [role="status"]').textContent,/Vínculo financeiro/);assert.equal(w.document.querySelector('[data-save]').disabled,false);fail=false;
+// A lost response frees Close after 20s but never enables another destructive request.
+let timeoutFn;const nativeTimeout=w.setTimeout.bind(w);w.setTimeout=(fn,ms,...args)=>ms===20000?(timeoutFn=fn,999999):nativeTimeout(fn,ms,...args);
+pending=new Promise(()=>{});click('[data-save]');await settle();assert.ok(timeoutFn);timeoutFn();await settle();
+assert.equal(w.document.querySelector('[data-close]').disabled,false);assert.equal(w.document.querySelector('[data-save]').disabled,true);
+assert.match(w.document.querySelector('dialog [role="status"]').textContent,/confirmar o resultado/);
+click('[data-close]');w.setTimeout=nativeTimeout;pending=null;
+w.deleteStudent('s1');click('[data-permanent]');input('#studentDeleteConfirmation','excluir permanentemente');
 let release;pending=new Promise(resolve=>release=resolve);click('[data-save]');click('[data-save]');await settle();assert.equal(w.document.querySelector('[data-close]').disabled,true);release();await settle();assert.equal(records.some(row=>row.id==='s1'),false);
-assert.equal(calls.filter(call=>call.name==='delete-student').length,2); // one failed, one successful; double click ignored
+assert.equal(calls.filter(call=>call.name==='delete-student').length,3); // failed, uncertain, successful; double click ignored
 assert.equal(calls.at(-1).body.confirmation,'excluir permanentemente');
 // Expiration is re-evaluated on redraw, without changing the profile.
 archives.set('s2',new Date(Date.now()+40).toISOString());await w.alunos();await new Promise(resolve=>setTimeout(resolve,150));assert.equal(w.document.querySelectorAll('.student-card').length,2);

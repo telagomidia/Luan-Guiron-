@@ -29,7 +29,7 @@ BEGIN
  END IF;
  FOR v_set IN SELECT value FROM jsonb_array_elements(p_sets) LOOP
   IF v_set ? 'rest_seconds' AND v_set->>'rest_seconds' IS NOT NULL
-     AND ((v_set->>'rest_seconds') !~ '^\\d+$'
+     AND ((v_set->>'rest_seconds') !~ '^[0-9]+$'
           OR (v_set->>'rest_seconds')::numeric NOT BETWEEN 0 AND 3600) THEN
    RAISE EXCEPTION 'Descanso: informe de 0 a 3600 segundos';
   END IF;
