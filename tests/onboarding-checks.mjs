@@ -18,6 +18,7 @@ export async function onboardingChecks(){
   check(one('#registrationSuccess').hidden,'No success on rejected registration');
   check(!qa.redirect,'No timer on rejected registration');
   check(one('#registrationStatus').textContent.length>0,'Visible error');
+  if(qa.mode==='failure')check(one('#registrationStatus').textContent.includes('senha mais forte'),'Rejected password explains how to correct it');
   check(one('[type="submit"]').disabled===(qa.mode==='uncertain'),'Known failure allows retry; ambiguous failure avoids duplicates');
   return 'registration failure stays on page with feedback';
  }

@@ -12,7 +12,7 @@
     if (result.error) {
       let body;
       try { body = await result.error.context?.json(); } catch { /* Network error. */ }
-      throw new Error(body?.error || fallback);
+      throw Object.assign(new Error(body?.error || fallback),{uncertain:!body?.error&&!/^[0-9A-Z]{5}$/.test(result.error.code||'')});
     }
     if (result.data?.error) throw new Error(result.data.error);
   }
@@ -33,30 +33,32 @@
     return element;
   }
 
-  window.deleteStudent = function(id) {
+  const removeStudent = function(id) {
     const student = students.find(item => item.id === id);
     if (!student || student.id === me?.id || student.role !== 'student') return toast('Selecione um aluno válido.');
     const element = dialog(student);
     if (!element) return;
     const content = element.querySelector('[data-content]');
     const status = element.querySelector('[role="status"]');
-    let busy = false;
+    let busy = false, uncertain = false;
     const controls = () => [...element.querySelectorAll('button,input')];
     const run = async (operation, message) => {
-      if (busy) return;
+      if (busy || uncertain) return;
       busy = true;
       controls().forEach(control => control.disabled = true);
       status.className = 'student-removal-status muted'; status.textContent = 'Processando…';
+      let timeout;
       try {
-        await operation();
+        await Promise.race([operation(),new Promise((_,reject)=>{timeout=setTimeout(()=>reject(Object.assign(new Error('Não foi possível confirmar o resultado. Feche esta janela e atualize a lista antes de tentar outra ação.'),{uncertain:true})),20000);})]);
       } catch (error) {
         status.className = 'student-removal-status bad';
-        status.textContent = error.message || 'Não foi possível concluir. Tente novamente.';
+        uncertain = error.uncertain === true;
+        status.textContent = uncertain?'Não foi possível confirmar o resultado. Feche esta janela e atualize a lista antes de tentar outra ação.':error.message || 'Não foi possível concluir. Tente novamente.';
         busy = false;
-        controls().forEach(control => control.disabled = false);
-        content.querySelector('[data-confirm]')?.dispatchEvent(new Event('input'));
+        controls().forEach(control => control.disabled = uncertain && !control.hasAttribute('data-close'));
+        if(!uncertain)content.querySelector('[data-confirm]')?.dispatchEvent(new Event('input'));
         return;
-      }
+      } finally {clearTimeout(timeout);}
       busy = false; element.close(); toast(message);
       try { await alunos(); } catch { toast('Operação concluída. Reabra Alunos para atualizar a lista.'); }
     };
@@ -101,7 +103,7 @@
   };
 
   let listTicket = 0, refreshTimer;
-  window.alunos = async function() {
+  const listStudents = async function() {
     const ticket = ++listTicket;
     const initialPage = document.querySelector('#nav .active')?.dataset.page;
     clearTimeout(refreshTimer);
@@ -171,4 +173,5 @@
     view.querySelector('#copySignup').onclick = () => copyStudentSignupLink();
     draw();
   };
+  window.LG_STUDENTS=Object.freeze({list:listStudents,remove:removeStudent});
 })();

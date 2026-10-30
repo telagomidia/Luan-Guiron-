@@ -1,11 +1,31 @@
 name: Regression tests
 on:
   pull_request:
-  push:
-    branches: ["main"]
+  workflow_call:
 permissions:
   contents: read
 jobs:
+  database:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci --prefix tests/db --no-audit --no-fund
+      - run: node tests/db/run.mjs
+  auth-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.81.3
+      - run: bash tests/db/supabase-integration.sh
   tests:
     runs-on: ubuntu-latest
     steps:
@@ -19,6 +39,9 @@ jobs:
           npm install --prefix "$RUNNER_TEMP/portal-ui" happy-dom@20.14.5 --no-audit --no-fund
           HAPPY_DOM_ENTRY="$RUNNER_TEMP/portal-ui/node_modules/happy-dom/lib/index.js" node tests/billing-ui.check.mjs
           HAPPY_DOM_ENTRY="$RUNNER_TEMP/portal-ui/node_modules/happy-dom/lib/index.js" node tests/portal-ui.check.mjs
+          HAPPY_DOM_ENTRY="$RUNNER_TEMP/portal-ui/node_modules/happy-dom/lib/index.js" node tests/portal-access-draft-ui.check.mjs
+          HAPPY_DOM_ENTRY="$RUNNER_TEMP/portal-ui/node_modules/happy-dom/lib/index.js" node tests/student-hub-ui.check.mjs
+          HAPPY_DOM_ENTRY="$RUNNER_TEMP/portal-ui/node_modules/happy-dom/lib/index.js" node tests/admin-loader-ui.check.mjs
           HAPPY_DOM_ENTRY="$RUNNER_TEMP/portal-ui/node_modules/happy-dom/lib/index.js" node tests/portal-registration-ui.check.mjs
           HAPPY_DOM_ENTRY="$RUNNER_TEMP/portal-ui/node_modules/happy-dom/lib/index.js" node tests/dashboard-ui.check.mjs
           HAPPY_DOM_ENTRY="$RUNNER_TEMP/portal-ui/node_modules/happy-dom/lib/index.js" node tests/onboarding-ui.check.mjs

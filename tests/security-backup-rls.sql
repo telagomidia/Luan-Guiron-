@@ -84,7 +84,8 @@ do $$ declare b jsonb := current_setting('lg.qa_snapshot')::jsonb; t text; resto
  for fk in select c.conrelid::regclass::text child,c.confrelid::regclass::text parent, a.attname childcol,p.attname parentcol
  from pg_constraint c join pg_attribute a on a.attrelid=c.conrelid and a.attnum=c.conkey[1]
  join pg_attribute p on p.attrelid=c.confrelid and p.attnum=c.confkey[1]
- where c.contype='f' and c.connamespace='public'::regnamespace and c.confrelid::regclass::text<>'auth.users' loop
+ where c.contype='f' and c.connamespace='public'::regnamespace and c.confrelid::regclass::text<>'auth.users'
+ and c.conrelid::regclass::text in (select jsonb_object_keys(b->'tables')) loop
   execute format('select count(*) from %I c left join %I p on c.%I=p.%I where c.%I is not null and p.%I is null','qa_restore_'||fk.child,'qa_restore_'||fk.parent,fk.childcol,fk.parentcol,fk.childcol,fk.parentcol) into missing;
   if missing>0 then raise exception 'Restore orphan: %',fk.child; end if;
  end loop;

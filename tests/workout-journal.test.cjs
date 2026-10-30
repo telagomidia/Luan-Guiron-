@@ -46,7 +46,7 @@ test('new save uses v2 with notes and validates before any RPC',async()=>{
 
 test('trainer panel exposes the selected student workout calendar',()=>{
  const admin=fs.readFileSync(__dirname+'/../admin.html','utf8');
- assert.match(admin,/data-student-history/);
+ const hub=fs.readFileSync(__dirname+'/../student-management.js','utf8');assert.match(hub,/studentWorkoutJournal/);assert.match(hub,/LG_TRAINER_JOURNAL\.mount/);
  assert.match(admin,/function openStudentJournal\(studentId\)/);
  assert.match(admin,/LG_TRAINER_JOURNAL\.mount\(holder,sb,studentId\)/);
 });

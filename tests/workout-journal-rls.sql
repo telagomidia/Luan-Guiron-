@@ -20,7 +20,7 @@ INSERT INTO storage.objects(bucket_id,name) VALUES ('progress-photos','22222222-
 SET LOCAL ROLE authenticated;
 SELECT set_config('request.jwt.claims','{"sub":"11111111-1111-4111-8111-111111111111","role":"authenticated"}',true);
 DO $qa$
-DECLARE sid uuid='cccccccc-cccc-4ccc-8ccc-cccccccccccc'; ownw uuid='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1'; payload jsonb='[{"exercise_id":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa11","set_number":1,"reps":10,"load_kg":0,"rir":0}]'; result jsonb; n int;
+DECLARE sid uuid='cccccccc-cccc-4ccc-8ccc-cccccccccccc'; ownw uuid='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1'; payload jsonb='[{"exercise_id":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa11","set_number":1,"reps":10,"load_kg":0,"rir":0,"rest_seconds":90}]'; result jsonb; n int;
 BEGIN
  result:=public.record_student_workout_v2(sid,ownw,now(),'QA',payload,'{"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa11":"Carga confortável"}');
  IF result->>'id'<>sid::text OR (result->>'reused')::boolean THEN RAISE EXCEPTION 'First save failed'; END IF;
@@ -28,6 +28,7 @@ BEGIN
  IF NOT (result->>'reused')::boolean THEN RAISE EXCEPTION 'Retry not idempotent'; END IF;
  IF (SELECT count(*) FROM public.exercise_sets WHERE session_id=sid)<>1 THEN RAISE EXCEPTION 'Duplicate sets'; END IF;
  IF NOT EXISTS(SELECT 1 FROM public.exercise_sets WHERE session_id=sid AND load_kg=0 AND rir=0) THEN RAISE EXCEPTION 'Zero lost'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM public.exercise_sets WHERE session_id=sid AND rest_seconds=90) THEN RAISE EXCEPTION 'Valid numeric rest rejected or lost'; END IF;
  IF (SELECT exercise_notes->>'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa11' FROM public.workout_sessions WHERE id=sid)<>'Carga confortável' THEN RAISE EXCEPTION 'Notes lost on retry'; END IF;
  IF (SELECT workout_snapshot->>'name' FROM public.workout_sessions WHERE id=sid)<>'A' THEN RAISE EXCEPTION 'Snapshot missing'; END IF;
  BEGIN

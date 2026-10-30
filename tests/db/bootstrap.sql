@@ -1,0 +1,16 @@
+CREATE ROLE anon;
+CREATE ROLE authenticated;
+CREATE ROLE service_role BYPASSRLS;
+CREATE SCHEMA auth;
+CREATE SCHEMA storage;
+CREATE TABLE auth.users(id uuid PRIMARY KEY, email text, email_confirmed_at timestamptz, raw_user_meta_data jsonb default '{}'::jsonb);
+CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$ select (current_setting('request.jwt.claims',true)::jsonb->>'sub')::uuid $$;
+CREATE FUNCTION auth.jwt() RETURNS jsonb LANGUAGE sql STABLE AS $$ select current_setting('request.jwt.claims',true)::jsonb $$;
+CREATE FUNCTION auth.role() RETURNS text LANGUAGE sql STABLE AS $$ select current_setting('request.jwt.claims',true)::jsonb->>'role' $$;
+CREATE TABLE storage.buckets(id text primary key,name text,public boolean default false);
+INSERT INTO storage.buckets(id,name)values('assessment-documents','assessment-documents'),('progress-photos','progress-photos'),('assessment-docs','assessment-docs');
+CREATE TABLE storage.objects(id uuid primary key default gen_random_uuid(),bucket_id text references storage.buckets(id),name text,metadata jsonb,owner uuid,owner_id text,updated_at timestamptz default now());
+ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+CREATE FUNCTION storage.foldername(name text) RETURNS text[] LANGUAGE sql IMMUTABLE AS $$ select string_to_array(name,'/') $$;
+GRANT USAGE ON SCHEMA auth,storage TO anon,authenticated,service_role;
+GRANT SELECT,INSERT,UPDATE,DELETE ON storage.objects TO authenticated,service_role;

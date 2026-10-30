@@ -57,6 +57,6 @@ api.plans=async()=>{throw{code:'request_timeout'}};await route('training');asser
 window.LG_BILLING={mount:async({container})=>{container.innerHTML='<h1>Pagamento pendente</h1>';}};
 paymentAllowed=false;window.dispatchEvent(new window.Event('lg-billing-updated'));await settle();assert.equal(doc.querySelectorAll('#studentNav [data-page]').length,1);assert.equal(window.location.hash,'#billing');assert.match(one('#content').textContent,/Pagamento pendente/);
 paymentAllowed=true;window.dispatchEvent(new window.Event('lg-billing-updated'));await settle();assert.equal(doc.querySelectorAll('#studentNav [data-page]').length,9);
-accessFails=true;window.dispatchEvent(new window.Event('lg-billing-updated'));await settle();assert.equal(doc.querySelectorAll('#studentNav [data-page]').length,1);
+accessFails=true;window.dispatchEvent(new window.Event('lg-billing-updated'));await settle();assert.equal(doc.querySelectorAll('#studentNav [data-page]').length,9);assert.match(one('#accessNotice').textContent,/preservadas/);
 console.log('PASS: eight routes, workout prescription/print, session failure/retry/double submit, history empty, private PDF, evolution/photos, anamnesis repeated edits, XSS escaping, profile repeated edits, dirty form protection, stale navigation response, visible query failure');
 await window.happyDOM.close();

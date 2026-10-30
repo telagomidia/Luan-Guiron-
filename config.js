@@ -7,4 +7,23 @@ window.LG_URLS={
   portal:()=> 'https://luanguiron.com.br/portal',
   isAdmin:(pathname=location.pathname)=>/\/admin(?:\.html)?\/?$/.test(pathname)
 };
-if(LG_URLS.isAdmin()){window.addEventListener('load',async()=>{for(const src of ['./student-management.js?v=9','./student-removal.js?v=1','./student-alerts.js?v=1','./training-import.js?v=2','./training-pdf.js?v=1','./plan-management.js?v=2','./training-ui.js?v=2','./training-context.js?v=1','./training-context-ui.js?v=1','./student-access.js?v=2'])await new Promise(ok=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=ok;document.body.appendChild(s)})})}
+if(LG_URLS.isAdmin()){
+ window.LG_ADMIN_READY=new Promise((resolve,reject)=>{
+  const start=async()=>{
+   try{
+    for(const src of ['./student-management.js?v=10','./student-removal.js?v=2','./student-alerts.js?v=1','./training-import.js?v=2','./training-pdf.js?v=1','./plan-management.js?v=2','./training-ui.js?v=2','./training-context.js?v=1','./training-context-ui.js?v=1','./student-access.js?v=2']){
+     await new Promise((loaded,failed)=>{
+      const script=document.createElement('script');let timer;
+      const finish=fn=>{clearTimeout(timer);script.onload=script.onerror=null;fn();};
+      script.src=src;script.onload=()=>finish(loaded);
+      script.onerror=()=>finish(()=>failed(Error('Não foi possível carregar o painel. Atualize a página.')));
+      timer=setTimeout(()=>{script.remove();finish(()=>failed(Error('O painel demorou para carregar. Confira a conexão e atualize a página.')));},15000);
+      document.body.appendChild(script);
+     });
+    }
+    resolve();
+   }catch(error){reject(error);}
+  };
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+ });
+}

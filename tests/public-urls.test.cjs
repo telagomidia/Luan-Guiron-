@@ -3,7 +3,7 @@ const {test}=require('node:test'),assert=require('node:assert/strict'),fs=requir
 function load(href){
   const url=new URL(href),listeners=[];
   const context={URL,location:{href:url.href,pathname:url.pathname},addEventListener:(name,handler)=>listeners.push([name,handler])};
-  context.window=context;
+  context.window=context;context.document={readyState:"loading",addEventListener:(name,handler)=>listeners.push([name,handler])};
   vm.createContext(context);
   vm.runInContext(fs.readFileSync(__dirname+'/../config.js','utf8'),context);
   return{urls:context.window.LG_URLS,listeners};
@@ -16,14 +16,14 @@ test('custom domain extensionless admin resolves signup at site root',()=>{
   assert.equal(urls.login(),'https://luanguiron.com.br/');
   assert.equal(urls.portal(),'https://luanguiron.com.br/portal');
   assert.equal(urls.isAdmin(),true);
-  assert.equal(listeners.some(([name])=>name==='load'),true);
+  assert.equal(listeners.some(([name])=>name==='DOMContentLoaded'),true);
 });
 
 test('GitHub Pages panel still shares the canonical custom domain',()=>{
   const {urls,listeners}=load('https://telagomidia.github.io/Luan-Guiron-/admin.html');
   assert.equal(urls.signup(),'https://luanguiron.com.br/cadastro');
   assert.equal(urls.isAdmin(),true);
-  assert.equal(listeners.some(([name])=>name==='load'),true);
+  assert.equal(listeners.some(([name])=>name==='DOMContentLoaded'),true);
 });
 
 test('non-admin pages do not load trainer modules',()=>{
@@ -37,10 +37,10 @@ test('admin publishes the current student history calendar assets',()=>{
   const admin=fs.readFileSync(__dirname+'/../admin.html','utf8');
   const config=fs.readFileSync(__dirname+'/../config.js','utf8');
   const management=fs.readFileSync(__dirname+'/../student-management.js','utf8');
-  assert.match(admin,/config\.js\?v=9/);
-  assert.match(config,/student-removal\.js\?v=1/);
+  assert.match(admin,/config\.js\?v=10/);
+  assert.match(config,/student-removal\.js\?v=2/);
   assert.match(admin,/trainer-journal\.js\?v=4/);
-  assert.match(config,/student-management\.js\?v=9/);
+  assert.match(config,/student-management\.js\?v=10/);
   assert.match(management,/LG_TRAINER_JOURNAL\.mount\(box\.querySelector\('#studentWorkoutJournal'\),sb,id\)/);
 });
 
