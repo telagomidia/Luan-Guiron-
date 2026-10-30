@@ -11,16 +11,19 @@ try{
   const page=await browser.newPage({viewport:{width,height:950},acceptDownloads:true});let errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.route('**/*',route=>{const p=new URL(route.request().url()).pathname;return route.fulfill({status:200,contentType:p.endsWith('.css')?'text/css':p.endsWith('.html')?'text/html':'image/svg+xml',body:p.endsWith('/admin.html')?html.replace(/<script\b[\s\S]*?<\/script>/gi,''):p.endsWith('/responsive.css')?read('responsive.css'):p.endsWith('/lg-design.css')?read('lg-design.css'):'<svg xmlns="http://www.w3.org/2000/svg"/>'});});
   await page.goto('https://lg-qa.invalid/admin.html');
-  await page.addScriptTag({content:read('backup-crypto.js')});await page.addScriptTag({content:read('backup-ui.js')});
+  await page.addScriptTag({content:read('assessment-save.js')});await page.addScriptTag({content:read('backup-crypto.js')});await page.addScriptTag({content:read('backup-ui.js')});
   await page.evaluate(()=>{
    const teacher={id:'qa-teacher',role:'trainer',active:true,full_name:'QA Teacher'},student={id:'qa-student',role:'student',active:true,full_name:'QA Student',observations:null};
    const tables=Object.fromEntries(LG_BACKUP.TABLES.map(t=>[t,[]]));tables.profiles=[teacher,student];
    const snapshot={format:'lg-system-snapshot',version:1,project_ref:'ziunjhebdkqdmvsrjxhm',created_at:new Date().toISOString(),tables,private_notes:[{profile_id:'qa-student',observations:'PRIVATE QA NOTE'}],storage_files:[{bucket_id:'assessment-documents',name:'qa-student/test.pdf',updated_at:'qa'}]};
+   window.LG_ADMIN_READY=new Promise(resolve=>window.modulesReady=resolve);
    window.backupCalls=0;window.rpcFail=false;
    const client={rpc:async name=>{if(name==='get_trainer_profile_notes')return {data:snapshot.private_notes};window.backupCalls++;await new Promise(r=>setTimeout(r,20));return window.rpcFail?{error:{message:'private SQL detail'}}:{data:snapshot};},storage:{from:()=>({download:async()=>({data:new Blob([new Uint8Array([0,255,1,128])])})})},auth:{signOut:async()=>{}},from:table=>({select(){return this;},eq(){return this;},order(){return this;},then(resolve){resolve({data:table==='profiles'?[student]:[],count:0});}})};
    window.LG_AUTH={createClient:()=>client,access:async()=>({profile:teacher}),sessionExpired:()=>false,message:()=>''};
   });
-  await page.addScriptTag({content:inline});await page.locator('#dashboardPriorities').waitFor();
+  await page.addScriptTag({content:inline});
+  for(const match of read('config.js').matchAll(/'\.\/([^']+\.js)\?v=\d+'/g))await page.addScriptTag({content:read(match[1])});
+  await page.evaluate(()=>window.modulesReady());await page.locator('#dashboardPriorities').waitFor();
   await page.evaluate(()=>studentForm('qa-student'));await page.locator('textarea[name="observations"]').waitFor();assert.equal(await page.locator('textarea[name="observations"]').inputValue(),'PRIVATE QA NOTE');await page.locator('#modal .modalhead button').click();
   await page.locator('[data-page="Segurança"]').click();await page.locator('#backupCreate').waitFor();
   const bounds=await page.evaluate(()=>({width:document.documentElement.scrollWidth,viewport:innerWidth}));assert.ok(bounds.width<=bounds.viewport+1,'Backup layout overflow at '+width);

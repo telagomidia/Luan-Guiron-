@@ -17,6 +17,13 @@ BEGIN
  FOR item IN SELECT key,value FROM jsonb_each(to_jsonb(NEW)) LOOP
   IF jsonb_typeof(item.value)='string' AND length(item.value #>> '{}')>10000 THEN RAISE EXCEPTION 'Texto da anamnese muito longo' USING ERRCODE='23514'; END IF;
  END LOOP;
+ IF TG_OP='INSERT' OR NEW.parq_answers IS DISTINCT FROM OLD.parq_answers THEN
+  FOR item IN SELECT key,value FROM jsonb_each(NEW.parq_answers) LOOP
+   IF item.key ~ '^q[1-7]$' AND (jsonb_typeof(item.value) IS DISTINCT FROM 'object' OR coalesce(item.value->>'answer','') NOT IN ('yes','no')) THEN
+    RAISE EXCEPTION 'Responda Sim ou Não no PAR-Q' USING ERRCODE='23514';
+   END IF;
+  END LOOP;
+ END IF;
  FOR bounds IN SELECT * FROM (VALUES ('height_cm',50,250),('weight_kg',1,500),('sleep_hours',0,24),('meals_per_day',0,30),('water_liters',0,20)) AS b(key,lo,hi) LOOP
   IF NEW.answers ? bounds.key AND NEW.answers->bounds.key<>'null'::jsonb THEN
    IF jsonb_typeof(NEW.answers->bounds.key) NOT IN ('number','string') THEN RAISE EXCEPTION 'Número inválido na anamnese' USING ERRCODE='23514'; END IF;
@@ -58,3 +65,19 @@ BEGIN
 END $$;
 REVOKE ALL ON FUNCTION lg_private.protect_session_input() FROM PUBLIC,anon;
 CREATE TRIGGER protect_session_input BEFORE INSERT OR UPDATE ON public.workout_sessions FOR EACH ROW EXECUTE FUNCTION lg_private.protect_session_input();
+
+-- Enforce uniqueness for future writes without deleting any historical duplicates.
+CREATE OR REPLACE FUNCTION lg_private.prevent_duplicate_set()
+RETURNS trigger LANGUAGE plpgsql SECURITY INVOKER SET search_path='' AS $$
+BEGIN
+ IF TG_OP='INSERT' OR NEW.session_id IS DISTINCT FROM OLD.session_id
+    OR NEW.exercise_id IS DISTINCT FROM OLD.exercise_id OR NEW.set_number IS DISTINCT FROM OLD.set_number THEN
+  PERFORM pg_advisory_xact_lock(hashtextextended(NEW.session_id::text||':'||NEW.exercise_id::text||':'||NEW.set_number::text,0));
+  IF EXISTS(SELECT 1 FROM public.exercise_sets WHERE session_id=NEW.session_id AND exercise_id=NEW.exercise_id AND set_number=NEW.set_number AND id<>NEW.id) THEN
+   RAISE EXCEPTION 'Série já registrada nesta sessão' USING ERRCODE='23505';
+  END IF;
+ END IF;
+ RETURN NEW;
+END $$;
+REVOKE ALL ON FUNCTION lg_private.prevent_duplicate_set() FROM PUBLIC,anon;
+CREATE TRIGGER prevent_duplicate_set BEFORE INSERT OR UPDATE ON public.exercise_sets FOR EACH ROW EXECUTE FUNCTION lg_private.prevent_duplicate_set();

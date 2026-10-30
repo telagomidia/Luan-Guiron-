@@ -17,6 +17,8 @@ DO $$ DECLARE sid uuid='66666666-0000-4000-8000-000000000040'; eid uuid='6666666
  BEGIN INSERT INTO public.anamneses(student_id,answers) VALUES(auth.uid(),'{"sleep_hours":25}'); RAISE EXCEPTION 'JSON sleep accepted' USING ERRCODE='ZX001'; EXCEPTION WHEN check_violation THEN NULL; END;
  BEGIN INSERT INTO public.anamneses(student_id,answers) VALUES(auth.uid(),jsonb_build_object('long',repeat('x',200001))); RAISE EXCEPTION 'Oversized answers accepted' USING ERRCODE='ZX001'; EXCEPTION WHEN check_violation THEN NULL; END;
  INSERT INTO public.exercise_sets(session_id,exercise_id,set_number,reps,load_kg,rir) VALUES(sid,eid,1,10,0,0);
+ BEGIN INSERT INTO public.exercise_sets(session_id,exercise_id,set_number,reps) VALUES(sid,eid,1,10); RAISE EXCEPTION 'Duplicate set accepted' USING ERRCODE='ZX001'; EXCEPTION WHEN unique_violation THEN NULL; END;
+ BEGIN INSERT INTO public.anamneses(student_id,parq_answers) VALUES(auth.uid(),'{"q1":{"answer":"not-a-choice"}}'); RAISE EXCEPTION 'Invalid PAR-Q accepted' USING ERRCODE='ZX001'; EXCEPTION WHEN check_violation THEN NULL; END;
  INSERT INTO public.anamneses(student_id,sleep_hours,answers) VALUES(auth.uid(),8,'{"sleep_hours":8,"water_liters":2}');
 END $$;
 RESET ROLE;

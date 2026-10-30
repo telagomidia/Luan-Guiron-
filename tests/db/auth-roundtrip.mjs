@@ -4,7 +4,7 @@ const config=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
 const origin=config.API_URL||config.api_url,anon=config.ANON_KEY||config.anon_key,service=config.SERVICE_ROLE_KEY||config.service_role_key;
 assert.ok(['127.0.0.1','localhost'].includes(new URL(origin).hostname),'Only disposable local Supabase is allowed');
 const mail=config.INBUCKET_URL||config.inbucket_url||'http://127.0.0.1:54324';assert.ok(['127.0.0.1','localhost'].includes(new URL(mail).hostname));
-const request=async(path,body,token=anon,method=body?'POST':'GET',extra={})=>{const response=await fetch(origin+path,{method,headers:{apikey:anon,Authorization:'Bearer '+token,'Content-Type':'application/json',...extra},body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(15000)});const data=await response.json();assert.ok(response.ok,'Local API request failed: '+path+' ('+response.status+')');return data;};
+const request=async(path,body,token=anon,method=body?'POST':'GET',extra={})=>{const response=await fetch(origin+path,{method,headers:{apikey:anon,Authorization:'Bearer '+token,'Content-Type':'application/json',...extra},body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(15000)});const text=await response.text();const data=text?JSON.parse(text):null;assert.ok(response.ok,'Local API request failed: '+path+' ('+response.status+')');return data;};
 const tag=randomUUID(),email='signup-'+tag+'@example.invalid',password='QA-only-'+randomUUID()+'aA1!';
 const registered=await request('/auth/v1/signup',{email,password,data:{full_name:'Synthetic Student',role:'trainer',birth_date:'1990-01-01',sex:'male'}});
 assert.ok(registered.id||registered.user?.id);assert.ok(!registered.access_token,'Signup must wait for email confirmation');

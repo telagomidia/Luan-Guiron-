@@ -40,6 +40,7 @@ jobs:
           HAPPY_DOM_ENTRY="$RUNNER_TEMP/portal-ui/node_modules/happy-dom/lib/index.js" node tests/billing-ui.check.mjs
           HAPPY_DOM_ENTRY="$RUNNER_TEMP/portal-ui/node_modules/happy-dom/lib/index.js" node tests/portal-ui.check.mjs
           HAPPY_DOM_ENTRY="$RUNNER_TEMP/portal-ui/node_modules/happy-dom/lib/index.js" node tests/portal-access-draft-ui.check.mjs
+          HAPPY_DOM_ENTRY="$RUNNER_TEMP/portal-ui/node_modules/happy-dom/lib/index.js" node tests/portal-access-timeout-ui.check.mjs
           HAPPY_DOM_ENTRY="$RUNNER_TEMP/portal-ui/node_modules/happy-dom/lib/index.js" node tests/student-hub-ui.check.mjs
           HAPPY_DOM_ENTRY="$RUNNER_TEMP/portal-ui/node_modules/happy-dom/lib/index.js" node tests/admin-loader-ui.check.mjs
           HAPPY_DOM_ENTRY="$RUNNER_TEMP/portal-ui/node_modules/happy-dom/lib/index.js" node tests/portal-registration-ui.check.mjs

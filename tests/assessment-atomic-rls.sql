@@ -14,12 +14,12 @@ DO $$ DECLARE a jsonb='{"student_id":"55555555-0000-4000-8000-000000000002","wei
   PERFORM public.save_assessment_atomic('55555555-0000-4000-8000-000000000010',true,a,'{"waist":"invalid-number"}','{}','[]',NULL,'[]','[]');
   RAISE EXCEPTION 'Invalid dependent record accepted' USING ERRCODE='ZX001';
  EXCEPTION WHEN invalid_text_representation THEN NULL; END;
- IF (SELECT weight_kg FROM public.assessments WHERE id='55555555-0000-4000-8000-000000000010')<>70
-    OR (SELECT waist FROM public.circumferences WHERE assessment_id='55555555-0000-4000-8000-000000000010')<>80 THEN
+ IF (SELECT weight_kg FROM public.assessments WHERE id='55555555-0000-4000-8000-000000000010') IS DISTINCT FROM 70
+    OR (SELECT waist FROM public.circumferences WHERE assessment_id='55555555-0000-4000-8000-000000000010') IS DISTINCT FROM 80 THEN
   RAISE EXCEPTION 'Partial save destroyed previous assessment';
  END IF;
  PERFORM public.save_assessment_atomic('55555555-0000-4000-8000-000000000010',true,a,'{"waist":81}','{}','[]',NULL,'[]','[]');
- IF (SELECT waist FROM public.circumferences WHERE assessment_id='55555555-0000-4000-8000-000000000010')<>81 THEN RAISE EXCEPTION 'Valid atomic edit failed'; END IF;
+ IF (SELECT waist FROM public.circumferences WHERE assessment_id='55555555-0000-4000-8000-000000000010') IS DISTINCT FROM 81 THEN RAISE EXCEPTION 'Valid atomic edit failed'; END IF;
  PERFORM public.save_assessment_atomic('55555555-0000-4000-8000-000000000011',false,a||jsonb_build_object('assessed_at',current_date),'{}','{}','[]',NULL,'[]','[]');
  PERFORM public.save_assessment_atomic('55555555-0000-4000-8000-000000000011',false,a||jsonb_build_object('assessed_at',current_date),'{}','{}','[]',NULL,'[]','[]');
  IF (SELECT count(*) FROM public.assessments WHERE id='55555555-0000-4000-8000-000000000011')<>1 THEN RAISE EXCEPTION 'Retry duplicated assessment'; END IF;

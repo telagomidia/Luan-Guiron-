@@ -11,4 +11,8 @@ for(const table of ['anamneses','assessments','training_plans','workout_sessions
 }
 failTable='';await w.openStudentHub('s1');assert.match(w.view.textContent,/Pendente/);assert.match(w.view.textContent,/Sem plano ativo/);
 assessments=[{student_id:'s1',assessed_at:'2026-10-30',protocol:'<img src=x onerror=bad()>',weight_kg:70}];await w.openStudentHub('s1','evo');assert.equal(w.view.querySelector('img'),null);assert.match(w.view.textContent,/<img src=x onerror=bad\(\)>/);
+let release,calls=0;w.students.push({id:'s2',full_name:'Aluno Dois',active:true});
+w.loadStudents=()=>++calls===1?new Promise(resolve=>release=resolve):Promise.resolve();
+const slow=w.openStudentHub('s1');await w.openStudentHub('s2');release();await slow;assert.match(w.view.querySelector('h1').textContent,/ALUNO DOIS/);
+let late;w.loadStudents=()=>new Promise(resolve=>late=resolve);const departed=w.openStudentHub('s1');w.view._studentHubTicket=null;w.view.innerHTML='<h1>OUTRA TELA</h1>';late();await departed;assert.match(w.view.textContent,/OUTRA TELA/);
 console.log('PASS: all five query failures visible; empty history only after successful queries');await w.happyDOM.close();

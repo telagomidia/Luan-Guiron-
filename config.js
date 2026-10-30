@@ -16,8 +16,8 @@ if(LG_URLS.isAdmin()){
       const script=document.createElement('script');let timer;
       const finish=fn=>{clearTimeout(timer);script.onload=script.onerror=null;fn();};
       script.src=src;script.onload=()=>finish(loaded);
-      script.onerror=()=>finish(()=>failed(Error('Não foi possível carregar o painel. Atualize a página.')));
-      timer=setTimeout(()=>{script.remove();finish(()=>failed(Error('O painel demorou para carregar. Confira a conexão e atualize a página.')));},15000);
+      script.onerror=()=>finish(()=>failed(Object.assign(Error('Não foi possível carregar o painel. Atualize a página.'),{code:'admin_modules_unavailable'})));
+      timer=setTimeout(()=>{script.remove();finish(()=>failed(Object.assign(Error('O painel demorou para carregar. Confira a conexão e atualize a página.'),{code:'admin_modules_unavailable'})));},15000);
       document.body.appendChild(script);
      });
     }

@@ -83,7 +83,7 @@ CREATE OR REPLACE FUNCTION public.review_release_ready()
 RETURNS boolean LANGUAGE sql STABLE SECURITY INVOKER SET search_path='' AS $$
  SELECT to_regprocedure('public.save_assessment_atomic(uuid,boolean,jsonb,jsonb,jsonb,jsonb,jsonb,jsonb,jsonb)') IS NOT NULL
  AND (SELECT count(*)=7 FROM pg_constraint WHERE conname IN ('sets_number_valid','sets_reps_valid','sets_load_valid','sets_rir_valid','anam_sleep_valid','anam_json_valid','session_notes_valid') AND connamespace='public'::regnamespace)
- AND (SELECT count(*)=2 FROM pg_trigger WHERE tgname IN ('validate_anamnesis_input','protect_session_input') AND NOT tgisinternal AND tgenabled<>'D');
+ AND (SELECT count(*)=3 FROM pg_trigger WHERE tgname IN ('validate_anamnesis_input','protect_session_input','prevent_duplicate_set') AND NOT tgisinternal AND tgenabled<>'D');
 $$;
 REVOKE ALL ON FUNCTION public.review_release_ready() FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.review_release_ready() TO anon,authenticated,service_role;

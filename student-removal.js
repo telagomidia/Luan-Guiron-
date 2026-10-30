@@ -104,7 +104,7 @@
 
   let listTicket = 0, refreshTimer;
   const listStudents = async function() {
-    const ticket = ++listTicket;
+    view._studentHubTicket=null;const ticket = ++listTicket;
     const initialPage = document.querySelector('#nav .active')?.dataset.page;
     clearTimeout(refreshTimer);
     await loadStudents();

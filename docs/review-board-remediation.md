@@ -32,3 +32,9 @@ Uploads anteriores não são sobrescritos. Se uma resposta da RPC se perder, arq
 No CI, `supabase-integration.sh` cria outro projeto local descartável com Auth/Storage/PostgREST/Mailpit reais. Os mesmos scripts SQL também rodam nele. `auth-roundtrip.mjs` recusa URLs que não sejam loopback e verifica cadastro, e-mail local, confirmação, login, trigger de perfil, anamnese, leitura pelo professor e isolamento de outro aluno. Não envia mensagens para endereços reais.
 
 A nova banca deve considerar os resultados completos do CI, inclusive esse teste e Chromium, antes de declarar aprovação.
+
+## Achados adicionais encerrados na segunda banca
+
+A banca encontrou uma referência prematura à avaliação no fluxo VO₂, uma consulta inicial sem prazo máximo, respostas atrasadas de perfis e asserções SQL que não detectavam linhas ausentes. Corrigidos e cobertos por `assessment-handler.test.cjs`, `portal-access-timeout-ui.check.mjs`, `student-hub-ui.check.mjs` e `IS DISTINCT FROM` nos testes SQL. Também acrescentadas barreiras a séries duplicadas e respostas PAR-Q inválidas. O botão de recuperação de módulo indisponível recarrega a página.
+
+A integração HTTP trata respostas 204 sem tentar interpretar JSON. A fixture de backup carrega os módulos reais e só libera boot depois da inicialização explícita, como o painel atual.

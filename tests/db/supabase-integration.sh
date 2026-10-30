@@ -9,7 +9,7 @@ from pathlib import Path
 import sys
 p=Path(sys.argv[1]);s=p.read_text().replace('enable_confirmations = false','enable_confirmations = true');p.write_text(s)
 PY
-supabase start --workdir "$qa_root" -x studio,realtime,logflare,vector,supavisor,edge-runtime,imgproxy,postgres-meta
+supabase start --workdir "$qa_root" -x studio,realtime,logflare,vector,supavisor,edge-runtime,imgproxy,postgres-meta > "$qa_root/start.log" 2>&1 || { tail -n 30 "$qa_root/start.log"; exit 1; }
 supabase status --workdir "$qa_root" -o json > "$qa_root/status.json"
 qa_db_url="$(python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); print(d.get("DB_URL") or d["db_url"])' "$qa_root/status.json")"
 # A disposable database is the only target. No project URL or production credentials are read.
