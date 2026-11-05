@@ -56,7 +56,7 @@
   };
   const baseDashboard = window.dashboard;
   function dashboardControls() {
-    if (view.querySelector('[data-signup-tools]')) return;
+    if (document.querySelector('#adminCopySignup') || view.querySelector('[data-signup-tools]')) return;
     const controls = document.createElement('div'); controls.className = 'student-tools'; controls.dataset.signupTools = '1';
     const button = document.createElement('button'); button.type = 'button'; button.className = 'ghost'; button.textContent = 'Copiar link de cadastro'; button.onclick = copyStudentSignupLink;
     const hint = document.createElement('p'); hint.className = 'muted'; hint.textContent = 'Aluno já cadastrado? Abra Alunos → Abrir perfil → Definir / redefinir senha.';

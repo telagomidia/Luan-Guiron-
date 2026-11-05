@@ -36,6 +36,7 @@ jobs:
           PLAYWRIGHT_ENTRY="$RUNNER_TEMP/mobile-ui/node_modules/playwright/index.mjs" node tests/backup-browser.check.mjs
           PLAYWRIGHT_ENTRY="$RUNNER_TEMP/mobile-ui/node_modules/playwright/index.mjs" node tests/onboarding-browser.check.mjs
           PLAYWRIGHT_ENTRY="$RUNNER_TEMP/mobile-ui/node_modules/playwright/index.mjs" node tests/interactions-browser.check.mjs
+          PLAYWRIGHT_ENTRY="$RUNNER_TEMP/mobile-ui/node_modules/playwright/index.mjs" node tests/admin-navigation-browser.check.mjs
           sudo apt-get update -qq
           sudo apt-get install -y poppler-utils
           PLAYWRIGHT_ENTRY="$RUNNER_TEMP/mobile-ui/node_modules/playwright/index.mjs" MOBILE_SCREENSHOTS="$RUNNER_TEMP/mobile-layout-screenshots" node tests/anamnesis-browser.check.mjs
