@@ -1,0 +1,55 @@
+/* LG motion: feedback follows real state; reading surfaces stay still. */
+:root{--lg-motion-fast:160ms;--lg-motion-enter:220ms;--lg-success:#177245}
+body[data-lg-page] :is(button,a,input,select,textarea){transition:background-color var(--lg-motion-fast),border-color var(--lg-motion-fast),box-shadow var(--lg-motion-fast),color var(--lg-motion-fast)}
+body[data-lg-page] :is(button,.cta):active:not(:disabled){transform:scale(.98)}
+body[data-lg-page] :is(button,a,input,select,textarea):focus-visible{outline:3px solid #7135e8;outline-offset:3px}
+body[data-lg-page] :is(input,select,textarea):focus{border-color:#7135e8;box-shadow:0 0 0 3px #7135e815}
+body[data-lg-page] :is(.field,fieldset,.anam-section):focus-within{border-color:#7135e8}
+body[data-lg-page] [aria-invalid="true"]{border-color:#b42318!important}
+.lg-field-error{display:block;color:#b42318;font-size:13px;margin:6px 0}
+body[data-lg-page] :is([aria-pressed="true"],nav [aria-current="page"],.atab.active){box-shadow:inset 0 -3px 0 #7135e8}
+body[data-lg-page="home"] .navlinks a[aria-current="location"]{color:#6324c5;text-decoration:underline;text-underline-offset:7px}
+body[data-lg-page] .journal-choice:has([aria-pressed="true"]){border-color:#7135e8;box-shadow:0 0 0 2px #7135e819}
+body[data-lg-page] .set-row:has([data-completed]:checked){background:#edf8f1;border-color:#6ea984}
+[data-completed]{accent-color:var(--lg-success)}
+.lg-enter{animation:lg-enter var(--lg-motion-enter) ease-out both}
+.lg-highlight{animation:lg-highlight 850ms ease-out}
+.lg-reveal{animation:lg-enter 360ms ease-out both}
+.lg-rest-progress{display:block;width:100%;height:6px;accent-color:#7135e8;margin-top:10px;order:5}
+.lg-rest-done{animation:lg-highlight 650ms ease-out}
+.lg-success-mark{position:relative;display:grid;place-items:center;width:88px;height:88px;margin:8px auto 20px;color:var(--lg-success)}
+.lg-success-mark svg{width:64px;height:64px;overflow:visible}
+.lg-success-mark path{stroke-dasharray:50;stroke-dashoffset:0;animation:lg-check 450ms ease-out both}
+.lg-success-mark::before{content:"";position:absolute;inset:0;border:2px solid #45b879;border-radius:50%;animation:lg-halo 850ms ease-out both}
+.lg-success-mark i{position:absolute;left:50%;top:50%;width:5px;height:5px;border-radius:50%;background:#39a76c;animation:lg-particle 900ms ease-out both;--x:0px;--y:0px}
+.lg-celebration{text-align:center;padding:20px 12px}
+.lg-celebration h2{margin:0 0 12px}
+.lg-celebration p{max-width:42ch;margin:0 auto 16px}
+.lg-photo-preview{display:block;max-width:160px;max-height:180px;object-fit:contain;margin:10px 0}
+.lg-upload-state{font-size:13px;color:#51475e}
+[aria-busy="true"]{cursor:progress}
+body[data-lg-page] button:disabled{cursor:wait}
+body[data-lg-page] .astep.active,body[data-lg-page] dialog[open]{animation:lg-enter 180ms ease-out}
+body.portal-menu-open #studentNav{animation:lg-fade 180ms ease-out}
+dialog{transition:opacity 140ms,display 140ms allow-discrete,overlay 140ms allow-discrete}
+dialog:not([open]){opacity:0}
+@starting-style{dialog[open]{opacity:0}}
+@media(hover:hover) and (pointer:fine){
+ body[data-lg-page] :is(.primary,.login-submit,.cta):hover:not(:disabled){box-shadow:0 4px 15px #7135e830}
+ body[data-lg-page] .quick-links button:hover{border-color:#7135e8;box-shadow:0 3px 12px #7135e81a}
+ body[data-lg-page] .cta span[aria-hidden]{display:inline-block;transition:transform 160ms}
+ body[data-lg-page] .cta:hover span[aria-hidden]{transform:translate(3px,-3px)}
+}
+@keyframes lg-enter{from{opacity:.25;transform:translateY(5px)}to{opacity:1;transform:none}}
+@keyframes lg-fade{from{opacity:.25}to{opacity:1}}
+@keyframes lg-highlight{from{box-shadow:0 0 0 3px #7135e84a}to{box-shadow:0 0 0 0 transparent}}
+@keyframes lg-check{from{stroke-dashoffset:50}to{stroke-dashoffset:0}}
+@keyframes lg-halo{from{opacity:.65;transform:scale(.65)}to{opacity:0;transform:scale(1.35)}}
+@keyframes lg-particle{from{opacity:.9;transform:translate(-50%,-50%) scale(1)}to{opacity:0;transform:translate(var(--x),var(--y)) scale(.35)}}
+@media(prefers-reduced-motion:reduce){
+ html{scroll-behavior:auto!important}
+ body[data-lg-page] *,body[data-lg-page] *::before,body[data-lg-page] *::after{animation:none!important;transition:none!important}
+ .lg-success-mark::before,.lg-success-mark i{display:none}
+ body[data-lg-page] :is(button,.cta):active{transform:none}
+}
+@media print{.lg-success-mark,.lg-rest-progress,.lg-field-error,.lg-photo-preview,.lg-upload-state{display:none!important}.lg-enter,.lg-reveal{animation:none!important;opacity:1!important;transform:none!important}}

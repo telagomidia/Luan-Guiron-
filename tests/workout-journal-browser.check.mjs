@@ -14,7 +14,7 @@ try{
    try{return r.fulfill({contentType:f.endsWith('.css')?'text/css':f.endsWith('.webp')?'image/webp':'text/html',body:f==='portal.html'?read(f).toString().replace(/<script\b[\s\S]*?<\/script>/gi,''):read(f)});}catch{return r.abort();}
   });
   await page.goto('https://journal.test/portal.html');
-  for(const f of ['workout-journal.js','anamnesis-schema.js','portal-model.js','portal-views.js'])await page.addScriptTag({content:read(f).toString()});
+  for(const f of ['lg-interactions.js','workout-journal.js','anamnesis-schema.js','portal-model.js','portal-views.js'])await page.addScriptTag({content:read(f).toString()});
   await page.evaluate(()=>{
    const profile={id:'own',full_name:'Aluno QA',role:'student'},plan={id:'p',name:'Plano de força QA',active:true};
    const workouts=['a','b','c'].map((id,i)=>({id,name:'Treino '+id.toUpperCase(),position:i+1,exercises:[{id:'e'+id,exercise_name:i===0?'Supino reto':'Exercício QA',target_sets:3,rep_min:8,rep_max:12,target_rir:2,rest_seconds:60,execution_notes:'Prescrição do professor'}]}));
@@ -56,10 +56,15 @@ try{
   await page.locator('#sessionNotes').fill('Treino realizado');
   if(width===390)await page.screenshot({path:output+'/journal-record-mobile.png',fullPage:true});
   await page.locator('#recordSession button[type="submit"]').click();await page.locator('[data-form-status].error').waitFor();
+  assert.equal(await page.locator('.lg-celebration').count(),0,'No celebration on failed save');
   assert.equal(await page.locator('[data-load]').nth(2).inputValue(),'60');assert.equal(await page.evaluate(()=>qa.sessions.length),1);
   await page.evaluate(()=>qa.fail=false);await page.locator('#recordSession button[type="submit"]').click();
   await page.locator('#recordSession').evaluate(f=>f.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));
   await page.locator('#viewSavedSession').waitFor();
+  assert.equal(await page.locator('.lg-celebration .lg-success-mark').count(),1,'Celebrate only confirmed save');
+  assert.equal(await page.locator('.lg-success-mark i').count(),10);
+  await fits();
+  if(width===390){await page.waitForTimeout(1000);await page.screenshot({path:output+'/lg-workout-success.png',fullPage:true});}
   const attempts=await page.evaluate(()=>qa.attempts);
   assert.equal(attempts.length,2);assert.equal(attempts[0].payload.p_session_id,attempts[1].payload.p_session_id);
   assert.equal(attempts[1].name,'record_student_workout_v2');assert.deepEqual(attempts[1].payload.p_sets.map(s=>s.load_kg),[20,40,60]);assert.ok(attempts[1].payload.p_sets[0].rest_seconds>=1);

@@ -1,6 +1,6 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const root=__dirname+'/../';
-function element(value='') {return {value,disabled:false,textContent:'',innerHTML:'',dataset:{},attrs:{},setAttribute(k,v){this.attrs[k]=v;}};}
+function element(value='') {return {value,disabled:false,textContent:'',innerHTML:'',dataset:{},attrs:{},focus(){this.focused=true;},removeAttribute(k){delete this.attrs[k];},setAttribute(k,v){this.attrs[k]=v;}};}
 function setup(options={}) {
  const calls=[],toasts=[],results=options.results||[],nodes=new Map();
  const form=element(),modal=element(),header=element();modal.open=false;modal.showModal=()=>modal.open=true;modal.close=()=>modal.open=false;modal.oncancel=null;modal.querySelectorAll=()=>[header];
