@@ -22,6 +22,7 @@
       if (!file) return;
       if (file.size > 1048576) return LG_TRAINING.feedback(form, 'O arquivo JSON deve ter até 1 MB.', true);
       try {
+        LG_TRAINING.feedback(form, 'Lendo arquivo JSON…');
         const content = await file.text();
         if (version !== fileVersion || !modal.open) return;
         payload.value = content;
@@ -31,13 +32,15 @@
     form.querySelector('#validateImport').onclick = () => {
       try {
         if (!student.value) throw Object.assign(new Error('Selecione o aluno.'), { code: 'validation' });
+        LG_TRAINING.feedback(form, 'Conferindo estrutura do treino…');
+        payload.removeAttribute('aria-invalid');student.removeAttribute('aria-invalid');
         parsed = LG_TRAINING.parse(payload.value);
         checkedText = payload.value; checkedStudent = student.value;
         const total = parsed.workouts.reduce((sum, w) => sum+w.exercises.length, 0);
         preview.innerHTML = '<div class="empty" style="text-align:left"><b>'+esc(parsed.plan_name)+'</b><br>Aluno: '+esc(students.find(s => s.id === student.value)?.full_name || 'Aluno')+'<br>'+parsed.workouts.length+' treino(s) · '+total+' exercício(s)<br><br>'+parsed.workouts.map(w => '<b>'+esc(w.name)+'</b><br>'+w.exercises.map(x => esc(x.exercise_name)+' — '+(x.sets ?? '—')+' séries · '+(x.rep_min ?? '—')+'–'+(x.rep_max ?? '—')+' reps · RIR '+(x.rir ?? '—')+' · '+(x.rest_seconds ?? '—')+' s'+(x.execution ? '<br>Execução: '+esc(x.execution) : '')+(x.notes ? '<br>Observação: '+esc(x.notes) : '')).join('<br>')).join('<br><br>')+'</div>';
         confirm.disabled = false;
         LG_TRAINING.feedback(form, 'Treino conferido. Revise o aluno e os exercícios e clique em “Confirmar e criar plano”.');
-      } catch (error) { parsed = null; confirm.disabled = true; preview.innerHTML = ''; LG_TRAINING.feedback(form, LG_TRAINING.message(error), true); }
+      } catch (error) { const invalid=student.value?payload:student;invalid.setAttribute('aria-invalid','true');invalid.focus();parsed = null; confirm.disabled = true; preview.innerHTML = ''; LG_TRAINING.feedback(form, LG_TRAINING.message(error), true); }
     };
     LG_TRAINING.bindForm(form, confirm, async values => {
       if (!parsed || values.payload !== checkedText || values.student_id !== checkedStudent) throw Object.assign(new Error('Confira o treino e o aluno antes de salvar.'), { code: 'validation' });
@@ -47,7 +50,7 @@
   };
   window.copyLGTrainingTemplate = async function() {
     const template = { plan_name: 'Nome do plano', goal: 'Objetivo', starts_on: '', ends_on: '', notes: 'Observações gerais', workouts: [{ name: 'Treino A', notes: '', exercises: [{ exercise_name: 'Nome do exercício', sets: 3, rep_min: 8, rep_max: 12, rir: 2, rest_seconds: 90, execution: 'Orientação de execução', notes: '' }] }] };
-    try { await navigator.clipboard.writeText(JSON.stringify(template, null, 2)); toast('Modelo LG JSON copiado'); }
+    try { await navigator.clipboard.writeText(JSON.stringify(template, null, 2)); toast('Modelo LG JSON copiado');window.LG_MOTION?.copied(document.querySelector('#copyPlanTemplate')); }
     catch { toast('Não foi possível copiar. Use o arquivo JSON ou tente novamente.'); }
   };
 })();

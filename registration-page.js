@@ -20,7 +20,7 @@
       if(result.status!=='submitted')return;
       form.elements.password.value=form.elements.confirm_password.value='';form.hidden=true;success.hidden=false;
       success.querySelector('[data-email]').textContent=result.email;
-      status.textContent='';success.focus();
+      status.textContent='';window.LG_MOTION?.animate(success);success.focus();
       redirect=setTimeout(()=>location.replace(LG_URLS.login()),5000);
     }catch(error){status.textContent=flow.message(error);if(!flow.state().uncertain)controls.forEach(field=>field.disabled=false);}
   };

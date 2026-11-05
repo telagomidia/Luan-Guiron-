@@ -71,7 +71,7 @@
       const result = await LG_AUTH.deadline(() => client.auth.updateUser({ password: password.value }));
       if (result.error || result.data?.user?.id !== verifiedUser) throw result.error || new Error('unconfirmed');
       completed = true; password.value = confirm.value = ''; form.hidden = true;
-      show('Senha definida! Clique em “Voltar ao login” e entre com seu e-mail e a nova senha.');
+      show('Senha definida! Clique em “Voltar ao login” e entre com seu e-mail e a nova senha.');status.style.color='#177245';window.LG_MOTION?.animate(status);
       try { await LG_AUTH.deadline(() => client.auth.signOut({ scope: 'local' })); } catch { /* No persistence; closing the page discards the session. */ }
     } catch (error) {
       show(error?.code === 'weak_password' ? 'Escolha uma senha mais forte, com letras, números e símbolos.' : error?.code === 'same_password' ? 'Escolha uma senha diferente da atual.' : 'Não foi possível confirmar a alteração. Tente entrar com a nova senha; se não funcionar, peça um novo link.', true);
